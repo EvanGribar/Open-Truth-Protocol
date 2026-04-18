@@ -96,5 +96,6 @@ class TruthConsensus(BaseModel):
     processing_duration_ms: int = Field(ge=0)
     final_truth_score: float = Field(ge=0.0, le=1.0)
     verdict: str
+    degraded_mode: bool = False
     agent_reports: dict[str, dict[str, Any]]
     ledger_receipt: LedgerReceipt | None = None

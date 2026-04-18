@@ -8,7 +8,14 @@ from uuid import uuid4
 from shared.constants import HARD_TIMEOUT_SECONDS, JOB_TOPIC_PREFIX
 from shared.kafka_client import KafkaProducerClient
 from shared.routing import get_active_agents
-from shared.schemas import ClientMetadata, JobPayload, ResultEnvelope, TruthConsensus
+from shared.schemas import (
+    ClientMetadata,
+    ErrorPayload,
+    JobPayload,
+    ResultEnvelope,
+    Status,
+    TruthConsensus,
+)
 from shared.scorer import compute_truth_score, map_score_to_verdict
 
 
@@ -17,6 +24,60 @@ class OrchestratorService:
         self._producer = producer
         self._reports: dict[str, dict[str, dict[str, Any]]] = {}
         self._jobs: dict[str, JobPayload] = {}
+
+    @staticmethod
+    def _timeout_error_payload(agent: str) -> dict[str, Any]:
+        return ErrorPayload(
+            code="AGENT_TIMEOUT",
+            message=f"{agent} did not publish a result before workflow timeout",
+            retryable=False,
+        ).model_dump(mode="json")
+
+    @staticmethod
+    def _synthetic_timeout_report(agent: str, duration_ms: int) -> dict[str, Any]:
+        return {
+            "task_id": "",
+            "agent": agent,
+            "status": Status.TIMEOUT.value,
+            "duration_ms": max(duration_ms, 0),
+            "payload": None,
+            "error": OrchestratorService._timeout_error_payload(agent),
+        }
+
+    def _finalize_with_missing_timeouts(self, task_id: str) -> None:
+        job = self._jobs[task_id]
+        reports = self._reports.setdefault(task_id, {})
+        now = datetime.now(tz=UTC)
+        duration_ms = int((now - job.timestamp_utc).total_seconds() * 1000)
+
+        for agent in job.active_agents:
+            if agent not in reports:
+                synthetic = self._synthetic_timeout_report(agent=agent, duration_ms=duration_ms)
+                synthetic["task_id"] = task_id
+                reports[agent] = synthetic
+
+    def has_task(self, task_id: str) -> bool:
+        return task_id in self._jobs
+
+    def is_task_complete(self, task_id: str) -> bool:
+        job = self._jobs.get(task_id)
+        if job is None:
+            return False
+
+        reports = self._reports.get(task_id, {})
+        if all(agent in reports for agent in job.active_agents):
+            return True
+
+        timeout_seconds = self.workflow_timeout_for_media_type(job.media_type)
+        elapsed_seconds = max(
+            0.0,
+            (datetime.now(tz=UTC) - job.timestamp_utc).total_seconds(),
+        )
+        if elapsed_seconds >= timeout_seconds:
+            self._finalize_with_missing_timeouts(task_id)
+            return True
+
+        return False
 
     async def create_job(
         self,
@@ -47,6 +108,12 @@ class OrchestratorService:
         return job
 
     def add_result(self, result: ResultEnvelope) -> None:
+        job = self._jobs.get(result.task_id)
+        if job is None:
+            return
+        if result.agent not in job.active_agents:
+            return
+
         task_reports = self._reports.setdefault(result.task_id, {})
         task_reports[result.agent] = result.model_dump(mode="json")
 
@@ -54,12 +121,17 @@ class OrchestratorService:
         job = self._jobs.get(task_id)
         if not job:
             return None
+
+        if not self.is_task_complete(task_id):
+            return None
+
         reports = self._reports.get(task_id, {})
         if not reports:
             return None
 
         final_score = compute_truth_score(job.media_type, reports)
         verdict = map_score_to_verdict(final_score, reports)
+        degraded_mode = "heuristics" not in job.active_agents
 
         now = datetime.now(tz=UTC)
         processing_duration_ms = int((now - job.timestamp_utc).total_seconds() * 1000)
@@ -72,6 +144,7 @@ class OrchestratorService:
             processing_duration_ms=max(processing_duration_ms, 0),
             final_truth_score=final_score,
             verdict=verdict,
+            degraded_mode=degraded_mode,
             agent_reports=reports,
             ledger_receipt=None,
         )
