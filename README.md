@@ -24,13 +24,19 @@ This repository currently includes:
 
 ## Roadmap
 
-The public execution order is tracked in `docs/IMPLEMENTATION_PLAN.md` and the Phase 1 backlog in `.github/project/BACKLOG.md`.
+**Phase 1 Implementation Status**: In Progress (14 issues planned, 0 merged)
 
-1. Complete the orchestrator contract: Temporal worker bootstrap, dispatch/collect flow, and explicit timeout handling.
-2. Harden shared contracts: routing matrix alignment, scorer boundary coverage, and confidence discount behavior.
-3. Finish pragmatic v1 agent paths: text provenance, text heuristics, and web-consensus cache/source checks.
-4. Add the ledger commitment integration stub and failure-safe return path.
-5. Keep release hygiene tight: docs, changelog, security triage, and issue/PR traceability.
+The public execution order is tracked in three documents:
+- **[docs/GITHUB_ISSUES_ROADMAP.md](docs/GITHUB_ISSUES_ROADMAP.md)** — Detailed GitHub issues with estimation, dependencies, and DoD criteria
+- **[docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)** — Track-level sequencing and cross-functional dependencies
+- **[.github/project/BACKLOG.md](.github/project/BACKLOG.md)** — Issue labels, milestones, and Phase 1 definition of done
+
+**Phase 1 Tracks**:
+1. **Track A (Orchestrator)**: Enforce per-agent timeouts, emit degraded_mode, timeout edge-case coverage
+2. **Track B (Shared)**: Validate routing matrix, scorer confidence/verdict boundaries
+3. **Track C (Agents)**: Real signal pipelines (text heuristics, text provenance, web cache)
+4. **Track D (Ledger)**: Commitment service skeleton and contract tests
+5. **Track E (Release)**: Documentation sync and Phase 1 completion
 
 ## Quick Start
 
