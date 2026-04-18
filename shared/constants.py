@@ -42,3 +42,10 @@ HARD_TIMEOUT_SECONDS: Final[dict[str, int]] = {
     "web_consensus": 45,
     "ledger": 60,
 }
+
+WORKFLOW_TIMEOUTS: Final[dict[str, int]] = {
+    "image/": 60,
+    "audio/": 60,
+    "text/": 30,
+    "video/": 300,
+}
