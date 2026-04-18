@@ -20,12 +20,12 @@ jobs:
         with:
           persist-credentials: false
       - name: Build Fuzzers
-        uses: google/clusterfuzzlite/actions/build_fuzzers@8847e35bd64471f48014c0efcf0ca956e5fbb5e0 # v1
+        uses: google/clusterfuzzlite/actions/build_fuzzers@82652fb49e77bc29c35da1167bb286e93c6bcc05 # v1
         with:
           sanitizer: ${{ matrix.sanitizer }}
           language: python
       - name: Run Fuzzers
-        uses: google/clusterfuzzlite/actions/run_fuzzers@8847e35bd64471f48014c0efcf0ca956e5fbb5e0 # v1
+        uses: google/clusterfuzzlite/actions/run_fuzzers@82652fb49e77bc29c35da1167bb286e93c6bcc05 # v1
         with:
           sanitizer: ${{ matrix.sanitizer }}
           fuzz-seconds: 600
