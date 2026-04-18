@@ -223,7 +223,9 @@ async def test_add_result_with_invalid_status() -> None:
     service.add_result(result)
 
     # Invalid status should be rejected and not added to reports
-    assert job.task_id not in service._reports or "heuristics" not in service._reports.get(job.task_id, {})
+    assert job.task_id not in service._reports or "heuristics" not in service._reports.get(
+        job.task_id, {}
+    )
 
 
 @pytest.mark.asyncio
@@ -400,7 +402,13 @@ async def test_get_consensus_normal_mode_with_all_successes() -> None:
 
     assert consensus is not None
     assert consensus.degraded_mode is False
-    assert consensus.verdict in ["LIKELY_AUTHENTIC", "UNVERIFIED", "INCONCLUSIVE", "LIKELY_SYNTHETIC", "SYNTHETIC"]
+    assert consensus.verdict in [
+        "LIKELY_AUTHENTIC",
+        "UNVERIFIED",
+        "INCONCLUSIVE",
+        "LIKELY_SYNTHETIC",
+        "SYNTHETIC",
+    ]
 
 
 @pytest.mark.asyncio

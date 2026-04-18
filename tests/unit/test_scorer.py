@@ -225,10 +225,10 @@ def test_compute_truth_score_text_vs_image_weights() -> None:
             "payload": {"web_consensus_score": 0.6, "confidence": 1.0},
         },
     }
-    
+
     image_score = compute_truth_score("image/jpeg", identical_reports)
     text_score = compute_truth_score("text/plain", identical_reports)
-    
+
     # Image: heur 0.50, prov 0.30, web 0.20 → (0.7*0.5 + 0.5*0.3 + 0.6*0.2) = 0.61
     # Text: heur 0.60, prov 0.10, web 0.30 → (0.7*0.6 + 0.5*0.1 + 0.6*0.3) = 0.65
     # Text should be higher because heuristics has higher weight and heuristics scored high
