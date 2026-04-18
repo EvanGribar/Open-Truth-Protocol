@@ -1,0 +1,29 @@
+name: Greetings
+
+on: [pull_request_target, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        # Message for first-time issue creators
+        issue-message: |
+          Welcome to the Open Truth Protocol! 🛡️ 
+          
+          Thank you for opening your first issue. Our goal is to build the world's first decentralized verification swarm, and your feedback helps us get there. 
+          
+          Please make sure you've checked our `agents.md` for architectural context. An agent will be with you shortly!
+          
+        # Message for first-time PR contributors
+        pr-message: |
+          Incredible! You're helping build the future of digital trust. 🚀
+          
+          This is your first Pull Request to OTP. Our automated CI/CD suite (CodeQL & Tests) will begin scanning your code momentarily. Please ensure your commits are signed off to comply with our DCO.
+          
+          We're excited to review your contribution!
