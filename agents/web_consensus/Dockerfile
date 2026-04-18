@@ -13,4 +13,4 @@ COPY shared /app/shared
 RUN pip install --no-cache-dir .
 
 USER otp
-CMD ["python", "-c", "from agents.web_consensus.main import process_job; print('web_consensus agent ready')"]
+CMD ["python", "-m", "agents.web_consensus.main"]

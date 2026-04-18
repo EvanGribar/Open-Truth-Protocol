@@ -13,4 +13,4 @@ COPY shared /app/shared
 RUN pip install --no-cache-dir .
 
 USER otp
-CMD ["python", "-c", "from agents.provenance.main import process_job; print('provenance agent ready')"]
+CMD ["python", "-m", "agents.provenance.main"]

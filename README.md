@@ -16,7 +16,8 @@ This repository is maintained for public open-source collaboration.
 This repository currently includes:
 
 - Contract-first shared schemas and scoring logic
-- Core service skeletons for Orchestrator, Heuristics, and Provenance
+- Kafka worker runtime for Heuristics, Provenance, and Web Consensus agents
+- Orchestrator ingest API with background Kafka result collection
 - Strict linting, type checking, and test gates
 - CI workflow for quality enforcement
 
@@ -49,7 +50,7 @@ make check
 
 ## Local Infrastructure
 
-Start Kafka, Redis, S3 emulation, Weaviate, Temporal, and the Orchestrator API:
+Start Kafka, Redis, S3 emulation, Weaviate, Temporal, Orchestrator API, and all analysis agents:
 
 ```bash
 docker compose up --build
@@ -65,6 +66,15 @@ After startup:
 
 - API health: `http://localhost:8000/health`
 - Temporal UI: `http://localhost:8088`
+
+## Runtime Flow
+
+1. Submit a job with `POST /ingest`.
+2. Orchestrator publishes the job to `otp.jobs.<task_id>`.
+3. Agent workers consume jobs, run analysis, and publish to `otp.results.<task_id>`.
+4. Orchestrator background consumer aggregates reports and serves consensus at `GET /results/{task_id}`.
+
+`POST /internal/results` remains available for local testing and fixture injection.
 
 ## Core Contracts
 

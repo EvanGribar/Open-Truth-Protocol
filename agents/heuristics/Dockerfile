@@ -13,4 +13,4 @@ COPY shared /app/shared
 RUN pip install --no-cache-dir .
 
 USER otp
-CMD ["python", "-c", "from agents.heuristics.main import process_job; print('heuristics agent ready')"]
+CMD ["python", "-m", "agents.heuristics.main"]
