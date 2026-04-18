@@ -54,12 +54,13 @@ This repository is maintained for public open-source collaboration:
 
 **Start here:**
 
-1. Read [AGENTS.md](AGENTS.md) for your task's section
+1. Read [AGENTS.md](AGENTS.md) for your task's section and the [Implementation Guide](docs/IMPLEMENTATION_GUIDE.md) for execution patterns
 2. Follow [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow
 3. Pick an issue from the GitHub Issues backlog or [.github/project/BACKLOG.md](.github/project/BACKLOG.md)
 4. Create a focused branch and implement with tests
-5. Run `make check` to verify all quality gates
+5. Run quality gates (see Quick Start) to verify all requirements
 6. Open a PR with clear reference to AGENTS.md section(s)
+
 
 ## Quick Start
 
