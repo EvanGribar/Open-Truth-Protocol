@@ -4,6 +4,9 @@
 **Status:** Living Document — Contributors must keep this file current with implementation.  
 **Last Updated:** April 2026
 
+> [!IMPORTANT]
+> **Transition Note:** The Open Truth Protocol is currently transitioning from a centralized architecture (Kafka, S3, Temporal) to a Local-First architecture (Redis, local storage, Python Asyncio). Some parts of the codebase may still reflect the legacy architecture while this document specifies the target state.
+
 This file is the engineering constitution for the OTP swarm. Every agent, every interface contract, every infra decision lives here. If you're building a new agent, modifying an existing one, or wiring up infra — read this first, top to bottom.
 
 ---
@@ -220,8 +223,11 @@ Every agent must emit:
   "task_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
   "media_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "media_type": "image/jpeg",
+  "processed_at_utc": "2026-04-18T12:00:00Z",
+  "processing_duration_ms": 5240,
   "final_truth_score": 0.89,
   "verdict": "LIKELY_AUTHENTIC",
+  "degraded_mode": false,
   "agent_reports": { ... }
 }
 ```
@@ -254,7 +260,7 @@ The `final_truth_score` is a weighted ensemble of the active agent scores.
 
 ```bash
 git clone https://github.com/EvanGribar/Open-Truth-Protocol.git
-cd opentruthprotocol
+cd Open-Truth-Protocol
 uv sync
 otp setup  # Downloads required model weights
 ```
@@ -273,5 +279,5 @@ otp verify path/to/media.jpg
 2. **Schema Integrity.** Changes to `TruthConsensus` require a version bump.
 3. **Benchmark Before Merge.** PRs touching scoring must include a benchmark report.
 4. **Secrets.** Use `.env` for API keys (Tavily, Pinata). Never commit secrets.
-5. **No agent may call another agent directly.** All communication is through the Orchestrator. 
+5. **No agent may call another agent directly.** All communication is asynchronously routed via the dispatch mechanism (Redis/IPC) defined by the Orchestrator's state machine.
 6. **Documentation.** Any new feature or agent MUST be documented in this file.
