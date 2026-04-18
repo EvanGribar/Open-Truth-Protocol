@@ -2,45 +2,51 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime
-from typing import Any
+from typing import Protocol
 
-from shared.observability import configure_logging, get_logger
+from shared.observability import get_logger
+from shared.schemas import LedgerReceipt, TruthConsensus
+
+logger = get_logger("ledger")
 
 
-async def run_benchmark() -> None:
-    """Runs all agents against a reference dataset and reports accuracy.
-    
-    This is a Phase 1 MVP stub. In Phase 2, this will:
-    1. Load a dataset from s3://otp-benchmarks/
-    2. Dispatch verification jobs for each item.
-    3. Compare OTP verdict against ground truth.
-    4. Generate a HTML/Markdown report.
+class LedgerService(Protocol):
+    """Interface for committing truth records to a ledger."""
+
+    async def commit_consensus(self, consensus: TruthConsensus) -> LedgerReceipt | None:
+        """Commit a consensus record to the ledger and IPFS.
+
+        Args:
+            consensus: The finalized truth consensus to commit.
+
+        Returns:
+            LedgerReceipt if successful, None otherwise.
+        """
+        pass
+
+
+class NoOpLedgerService:
+    """A no-op implementation of LedgerService for Phase 1.
+
+    In Phase 1, we don't actually commit to a blockchain, but we provide
+    the interface and a mock receipt for integration testing.
     """
-    configure_logging("INFO")
-    
-    print("=== OTP Swarm Benchmark (Phase 1 Stub) ===")
-    print("Scenario: Synthetic Media Detection (Image/Text)")
-    
-    # Mock results for demonstration
-    results: list[dict[str, Any]] = [
-        {"type": "image", "label": "authentic", "predicted": "LIKELY_AUTHENTIC", "correct": True},
-        {"type": "image", "label": "synthetic", "predicted": "SYNTHETIC", "correct": True},
-        {"type": "text", "label": "authentic", "predicted": "UNVERIFIED", "correct": True},
-        {"type": "text", "label": "synthetic", "predicted": "LIKELY_SYNTHETIC", "correct": True},
-    ]
-    
-    correct_count = sum(1 for r in results if r["correct"])
-    accuracy = (correct_count / len(results)) * 100
-    
-    print(f"\nAccuracy: {accuracy:.1f}%")
-    print(f"Total Items: {len(results)}")
-    
-    logger.info("benchmark_completed", accuracy=accuracy, total=len(results))
 
+    async def commit_consensus(self, consensus: TruthConsensus) -> LedgerReceipt | None:
+        # Simulate some latency
+        await asyncio.sleep(0.1)
 
-def main() -> None:
-    asyncio.run(run_benchmark())
+        logger.info(
+            "ledger_commitment_simulated_noop",
+            task_id=consensus.task_id,
+            final_truth_score=consensus.final_truth_score,
+            ipfs_mock="ipfs://QmPending",
+        )
 
-
-if __name__ == "__main__":
-    main()
+        return LedgerReceipt(
+            network="sepolia-mock",
+            transaction_hash=f"0x{consensus.task_id.replace('-', '')}",
+            block_number=1234567,
+            ipfs_cid="QmPending",
+            committed_at_utc=datetime.now(tz=UTC),
+        )
