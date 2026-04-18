@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 
 from agents.heuristics.main import process_job as process_heuristics_job
 from agents.provenance.main import process_job as process_provenance_job
+from agents.web_consensus.main import process_job as process_web_consensus_job
 
 
 def _base_job() -> dict[str, object]:
@@ -29,3 +30,11 @@ def test_provenance_process_job_success() -> None:
     assert result.agent == "provenance"
     assert result.status.value == "success"
     assert result.payload is not None
+
+
+def test_web_consensus_process_job_success() -> None:
+    result = process_web_consensus_job(_base_job())
+    assert result.agent == "web_consensus"
+    assert result.status.value == "success"
+    assert result.payload is not None
+    assert result.payload["web_consensus_score"] >= 0.0

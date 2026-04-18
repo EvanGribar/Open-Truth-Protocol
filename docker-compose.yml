@@ -36,3 +36,8 @@ services:
       - redis
       - localstack
       - temporal
+
+  web_consensus:
+    build:
+      context: .
+      dockerfile: agents/web_consensus/Dockerfile
