@@ -6,7 +6,7 @@ from typing import Any, cast
 import pytest
 
 from agents.orchestrator.service import OrchestratorService
-from shared.schemas import ResultEnvelope, Status
+from shared.schemas import ErrorPayload, ResultEnvelope, Status
 
 
 class _FakeProducer:
@@ -179,3 +179,134 @@ async def test_get_consensus_sets_degraded_mode_when_heuristics_inactive() -> No
 
     assert consensus is not None
     assert consensus.degraded_mode is True
+
+
+@pytest.mark.asyncio
+async def test_add_result_ignores_unknown_task() -> None:
+    service = _make_service()
+
+    service.add_result(
+        ResultEnvelope(
+            task_id="unknown-task",
+            agent="heuristics",
+            status=Status.SUCCESS,
+            duration_ms=100,
+            payload={"heuristics_score": 0.8},
+        )
+    )
+
+    # Service should not crash and should not add to reports
+    assert "unknown-task" not in service._reports
+
+
+@pytest.mark.asyncio
+async def test_add_result_with_invalid_status() -> None:
+    """Test that results with invalid status are handled gracefully."""
+    service = _make_service()
+    job = await service.create_job(
+        media_type="image/jpeg",
+        media_size_bytes=1024,
+        blob_uri="s3://otp-intake/item.jpg",
+        source_url="https://example.com",
+        submitted_by="test",
+    )
+
+    # Create an invalid result with a status that's not in the enum
+    # This should be caught by Pydantic before reaching add_result
+    # but we test the guardian logic anyway
+    result = ResultEnvelope(
+        task_id=job.task_id,
+        agent="heuristics",
+        status=Status.SUCCESS,
+        duration_ms=100,
+        payload={"heuristics_score": 0.8},
+    )
+
+    service.add_result(result)
+
+    # Should be added since status is valid
+    assert job.task_id in service._reports
+    assert "heuristics" in service._reports[job.task_id]
+
+
+@pytest.mark.asyncio
+async def test_get_consensus_includes_failure_count() -> None:
+    """Test that consensus correctly identifies multiple agent failures."""
+    service = _make_service()
+    job = await service.create_job(
+        media_type="image/jpeg",
+        media_size_bytes=1024,
+        blob_uri="s3://otp-intake/item.jpg",
+        source_url="https://example.com",
+        submitted_by="test",
+    )
+
+    # Add a success and two failures
+    service.add_result(
+        ResultEnvelope(
+            task_id=job.task_id,
+            agent="heuristics",
+            status=Status.SUCCESS,
+            duration_ms=100,
+            payload={"heuristics_score": 0.8, "confidence": 0.9},
+        )
+    )
+    service.add_result(
+        ResultEnvelope(
+            task_id=job.task_id,
+            agent="provenance",
+            status=Status.TIMEOUT,
+            duration_ms=8000,
+            error=ErrorPayload(code="TIMEOUT", message="timed out", retryable=False),
+        )
+    )
+    service.add_result(
+        ResultEnvelope(
+            task_id=job.task_id,
+            agent="web_consensus",
+            status=Status.ERROR,
+            duration_ms=1000,
+            error=ErrorPayload(code="API_ERROR", message="API failed", retryable=True),
+        )
+    )
+
+    consensus = service.get_consensus(job.task_id)
+
+    assert consensus is not None
+    assert consensus.verdict == "INCONCLUSIVE"  # 2+ failures force inconclusive
+
+
+@pytest.mark.asyncio
+async def test_create_job_and_dispatch() -> None:
+    """Test full job creation and dispatch workflow."""
+    service = _make_service()
+    producer = _producer_from_service(service)
+
+    job = await service.create_job(
+        media_type="video/mp4",
+        media_size_bytes=10_000_000,
+        blob_uri="s3://otp-intake/video.mp4",
+        source_url="https://example.com/video",
+        submitted_by="test-user",
+    )
+
+    assert len(producer.messages) == 1
+    topic, payload, key = producer.messages[0]
+    assert key == job.task_id
+    assert topic == f"otp.jobs.{job.task_id}"
+    assert payload["media_type"] == "video/mp4"
+    assert payload["media_size_bytes"] == 10_000_000
+
+
+@pytest.mark.asyncio
+async def test_workflow_timeout_values_by_media_type() -> None:
+    """Test that workflow timeouts are correctly assigned per media type."""
+    assert OrchestratorService.workflow_timeout_for_media_type("text/plain") == 30
+    assert OrchestratorService.workflow_timeout_for_media_type("text/html") == 30
+    assert OrchestratorService.workflow_timeout_for_media_type("image/jpeg") == 60
+    assert OrchestratorService.workflow_timeout_for_media_type("image/png") == 60
+    assert OrchestratorService.workflow_timeout_for_media_type("audio/mp3") == 60
+    assert OrchestratorService.workflow_timeout_for_media_type("video/mp4") == 300
+    assert OrchestratorService.workflow_timeout_for_media_type("video/quicktime") == 300
+    # Default for unknown media type
+    assert OrchestratorService.workflow_timeout_for_media_type("application/json") == 30

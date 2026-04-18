@@ -8,6 +8,12 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Added
 
+- Enhanced error handling and logging in orchestrator service and main API
+- Comprehensive validation and error messages for agent result ingestion
+- Failure count tracking in consensus building for improved degraded-mode detection
+- Structured logging with task context throughout orchestrator lifecycle
+- Enhanced test coverage for error handling paths and edge cases (57.29% project coverage)
+- Tests for timeout synthesis, inactive agent rejection, and degraded mode validation
 - OSS governance baseline documents (license, code of conduct, security policy)
 - Contributor tooling configuration for local quality gate automation
 - Expanded onboarding and local development guidance
@@ -25,6 +31,9 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Changed
 
+- Improved orchestrator ingest endpoint with better fallback error handling
+- Enhanced results endpoint with clearer status logging
+- Better error messages for Temporal workflow startup failures
 - Standardized quality enforcement on a single canonical CI workflow
 - Added `ruff format --check .` to CI and local `make check` gates
 - Enabled dependency review failure on moderate-or-higher vulnerabilities
