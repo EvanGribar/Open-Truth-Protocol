@@ -62,3 +62,12 @@ jobs:
 
       - name: Pytest
         run: uv run pytest
+
+  auto-approve:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    if: github.event.pull_request.user.login == 'EvanGribar'
+    steps:
+      - name: Auto-approve
+        uses: hmarr/auto-approve-action@f907406a37a75266850c905f8843940cb36a3089 # v4.0.0
