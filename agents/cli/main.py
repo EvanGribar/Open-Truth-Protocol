@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import mimetypes
 import sys
 from pathlib import Path
 
@@ -35,13 +36,18 @@ async def verify_file(file_path: str, api_url: str) -> None:
     # Mocking S3 upload for now as this is a Phase 1 MVP CLI
     blob_uri = f"s3://otp-intake/cli-upload/{path.name}"
     
+    # Detect media type from file extension
+    media_type, _ = mimetypes.guess_type(path)
+    if not media_type:
+        media_type = "application/octet-stream"
+
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
             # 1. Ingest
             response = await client.post(
                 f"{api_url}/ingest",
                 json={
-                    "media_type": "image/jpeg",  # Simplified for MVP
+                    "media_type": media_type,
                     "media_size_bytes": path.stat().st_size,
                     "blob_uri": blob_uri,
                     "source_url": "cli://local-file",
