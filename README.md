@@ -5,21 +5,22 @@
 
 ## What is OTP?
 
-**OTP is a decentralized, open-source swarm of AI agents that collectively verify the authenticity of digital media.**
+**OTP is a decentralized, open-source protocol for specialized AI agents that collectively verify the authenticity of digital media locally on your hardware.**
 
-A piece of media—image, video, audio, or text—enters the pipeline. Multiple specialized agents analyze it for authenticity signals. A cryptographically anchored `TruthConsensus` record exits, immutably pinned to IPFS and hashed to a public blockchain. Every verification is:
+A piece of media—image, video, audio, or text—is processed by a local orchestrator. Multiple specialized agents analyze it for authenticity signals. A cryptographically anchored `TruthConsensus` record is generated, which can be immutably pinned to IPFS and hashed to a public blockchain. Every verification is:
 
-- **Transparent.** Each agent surfaces human-readable evidence for its score
-- **Asynchronous.** Agents run in parallel; no single point of failure
-- **Immutable.** Every attestation is permanently auditable
-- **Extensible.** Any developer can write and submit a new agent for inclusion
+- **Local-First.** Users run the analysis on their own devices. No media ever leaves the user's control.
+- **Transparent.** Each agent surfaces human-readable evidence for its score.
+- **Asynchronous.** Agents run in parallel; no single point of failure.
+- **Immutable.** Every attestation is permanently auditable via public ledgers.
 
 ## Why OTP?
 
 Digital authenticity is broken. Deepfakes are indistinguishable from reality. AI-generated text floods social media. Communities have no way to verify what they see.
 
-Existing solutions are siloed: X has a fact-check label, Facebook has a label, TikTok has a label—each proprietary, each a black box, each governed by a corporation. OTP inverts this model: **the protocol is owned by the community.**
+Existing solutions are siloed: X, Facebook, and TikTok each have proprietary, black-box labels governed by corporations. OTP inverts this model: **the protocol and execution are owned by the user.**
 
+- **Not a hosted SaaS.** OTP is software you run, not a service you call. No media is ever uploaded to a central server.
 - **Not a content moderator.** OTP scores authenticity, not legality. It cannot be weaponized for censorship.
 - **Not a black box.** Every score is explainable. If an agent detects synthesis artifacts, it shows you what it found.
 - **Not a legal oracle.** OTP scores are probabilistic attestations, not admissible evidence. Communities use them as a baseline for discussion, not as fact.
@@ -28,8 +29,8 @@ Existing solutions are siloed: X has a fact-check label, Facebook has a label, T
 
 This repository is the core implementation of OTP:
 
-- **`AGENTS.md`** — The authoritative technical contract. Every agent, every interface, every timeout lives here.
-- **`shared/`** — Contract-first schemas, Kafka client, routing matrix, and scoring logic
+- **`AGENTS.md`** — The authoritative technical contract and Local-First specification.
+- **`shared/`** — Contract-first schemas, Redis/IPC logic, and scoring ensemble.
 - **`agents/`** — Orchestrator, Heuristics, Provenance, and Web Consensus agents
 - **`tests/`** — Comprehensive unit and integration tests (60+ tests, 58%+ coverage)
 
@@ -109,31 +110,27 @@ See `.github/project/BACKLOG.md` for the Phase 1 issue structure and child issue
 
 ## Local Infrastructure
 
-Start Kafka, Redis, S3 emulation, Weaviate, Temporal, Orchestrator API, and all analysis agents:
+Run the OTP verification stack locally using Docker (optional for full isolation) or direct Python execution:
 
 ```bash
-docker compose up --build
-```
-
-Or start only infra dependencies:
-
-```bash
+# Start local support services (Redis)
 docker compose -f docker/docker-compose.infra.yml up -d
 ```
 
-After startup:
+After startup, you can verify media via the CLI:
 
-- API health: `http://localhost:8000/health`
-- Temporal UI: `http://localhost:8088`
+```bash
+otp verify path/to/media.jpg
+```
 
 ## Runtime Flow
 
-1. Submit a job with `POST /ingest`.
-2. Orchestrator starts a Temporal verification workflow for the task.
-3. Workflow dispatch activity publishes the job to `otp.jobs.<task_id>`.
-4. Agent workers consume jobs, run analysis, and publish to `otp.results.<task_id>`.
-5. Orchestrator background consumer aggregates reports, and workflow collect activity finalizes on completion or timeout.
-6. Consensus is served at `GET /results/{task_id}`.
+1. **Ingest**: File path provided via CLI or local UI.
+2. **Normalize**: Orchestrator moves media to local data directory (`~/.otp/data/`).
+3. **Dispatch**: Task dispatched to agents via local Redis Pub/Sub.
+4. **Analyze**: Agents compute scores in parallel modules.
+5. **Consensus**: Orchestrator aggregates results into a `TruthConsensus` report.
+6. **Commit (Optional)**: Consensus is pinned to IPFS and hashed to a public ledger.
 
 `POST /internal/results` remains available for local testing and fixture injection.
 

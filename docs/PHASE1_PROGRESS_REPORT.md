@@ -5,24 +5,24 @@
 
 ## Executive Summary
 
-Phase 1 of the Open Truth Protocol has successfully delivered the core infrastructure for an agentic, asynchronous media verification swarm. We have established the contract-first architecture (AGENTS.md), the Temporal orchestration layer, and the cryptographic commitment path.
+Phase 1 of the Open Truth Protocol has successfully established the core infrastructure for a local-first, agentic media verification swarm. We have transitioned from a centralized Kafka/Temporal architecture to a lightweight, high-performance Local-First model using Redis Pub/Sub and Python Asyncio.
 
 ## Track Status
 
 | Track | Name | Status | Key Deliverables |
 | :--- | :--- | :---: | :--- |
-| **Track 1** | **Orchestrator** | ✅ | Temporal workflow, Kafka integration, result aggregation |
-| **Track 2** | **Shared Logic** | ✅ | Scoring model, verdict boundaries, routing matrix |
+| **Track 1** | **Orchestrator** | ✅ | Local async dispatch, result aggregation, timeout handling |
+| **Track 2** | **Shared Logic** | ✅ | Scoring ensemble, verdict boundaries, routing matrix |
 | **Track 3** | **Verification Tools** | ✅ | `otp-verify` CLI, `otp-benchmark` suite stubs |
 | **Track 4** | **Ledger Path** | ✅ | `LedgerService` interface, NoOp commitment integration |
-| **Track 5** | **Release Prep** | ⏭️ | Finalizing docs and PR for main merge |
+| **Track 5** | **Release Prep** | ⏭️ | Finalizing docs for Local-First launch |
 
 ## Completed Milestones (v0.1.0-alpha)
 
-### 1. Robust Orchestration
-- **Temporal Native:** Replaced manual polling with Temporal Activities and Workflows.
-- **Resilient Dispatch:** Jobs are dispatched to Kafka with retry logic and state tracked via Temporal.
-- **Timeout Management:** Enforced per-agent SLAs; Orchestrator synthesizes timeout reports for missing signals.
+### 1. Local-First Orchestration
+- **Async Native:** Replaced Temporal workflows with lightweight Python Asyncio state machines.
+- **Fast Dispatch:** Jobs are dispatched via local Redis topics, reducing overhead and removing external dependencies.
+- **Local Ingest:** Media is normalized to local storage (`~/.otp/data/`), ensuring zero-copy access for local agents.
 
 ### 2. Scientific Scoring
 - **Confidence Discounting:** Low-confidence agent scores are statistically pulled towards 0.5 (Neutral).
@@ -36,13 +36,11 @@ Phase 1 of the Open Truth Protocol has successfully delivered the core infrastru
 
 ### 4. Cryptographic Backbone
 - **Ledger Path:** Defined the interface for committing `TruthConsensus` to an L2 blockchain and IPFS.
-- **Receipt Management:** Orchestrator now caches consensus and updates them with ledger receipts asynchronously.
+- **Local Receipting:** Orchestrator manages the lifecycle of consensus reports from analysis to ledger commitment.
 
 ## Outstanding Items for Phase 2
-- [ ] Integration of real signal models in Heuristics and Provenance agents.
-- [ ] Real Ethereum L2 (e.g., Base/Arbitrum) commitment implementation for `LedgerService`.
 - [ ] Web Consensus agent connection to Tavily/Google Search APIs.
-- [ ] Multi-tenant auth and rate limiting in API Gateway.
+- [ ] Local UI / Desktop App for visual verification management.
 
 ---
 *Authorized by the OTP Maintainers.*

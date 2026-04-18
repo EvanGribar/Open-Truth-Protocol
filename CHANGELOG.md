@@ -8,6 +8,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Added
 
+- **Architectural Pivot: Local-First vision implemented in documentation.**
+- Transitioned AGENTS.md, README.md, and implementation guides to reflect the "No Hosting" policy.
+- Replaced centralized infrastructure (Kafka, S3, Temporal) with Local-First alternatives (Redis, Local Filesystem, Python Asyncio) in technical specs.
+
 - Initial `LedgerService` interface and `NoOpLedgerService` implementation for Phase 1
 - `VerificationWorkflow` integration with ledger commitment post-processing
 - `otp-verify` CLI tool for submitting and monitoring media verification jobs
