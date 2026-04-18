@@ -48,8 +48,8 @@ individual is officially representing the community in public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to
-project maintainers by opening a private security advisory in GitHub or by contacting
-conduct@opentruthprotocol.org.
+project maintainers by opening a private report through GitHub repository channels or by
+contacting conduct@opentruthprotocol.org.
 
 All complaints will be reviewed and investigated promptly and fairly.
 

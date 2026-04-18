@@ -7,6 +7,7 @@ OTP follows AGENTS.md as the authoritative implementation contract.
 All pull requests must pass:
 
 - `ruff check .`
+- `ruff format --check .`
 - `mypy .`
 - `pytest`
 
@@ -43,6 +44,7 @@ docker compose up -d
 
 ```bash
 uv run ruff check .
+uv run ruff format --check .
 uv run mypy .
 uv run pytest
 ```

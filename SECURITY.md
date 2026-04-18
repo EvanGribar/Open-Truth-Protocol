@@ -11,7 +11,7 @@
 Do not open public issues for security vulnerabilities.
 
 Please report vulnerabilities privately using GitHub Security Advisories for this repository.
-If private advisory access is not available, email security@opentruthprotocol.org.
+If private advisory access is not available, contact maintainers via repository security contact channels or email security@opentruthprotocol.org.
 
 Include the following details:
 

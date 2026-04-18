@@ -4,7 +4,9 @@ from redis.asyncio import Redis
 
 
 class DedupeStore:
-    def __init__(self, redis_client: Redis, *, prefix: str = "otp:dedupe", ttl_seconds: int = 86_400) -> None:
+    def __init__(
+        self, redis_client: Redis, *, prefix: str = "otp:dedupe", ttl_seconds: int = 86_400
+    ) -> None:
         self._redis = redis_client
         self._prefix = prefix
         self._ttl_seconds = ttl_seconds

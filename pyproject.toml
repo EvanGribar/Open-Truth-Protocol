@@ -47,7 +47,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-ra --strict-markers --cov=agents --cov=shared --cov-report=term-missing"
+addopts = "-ra --strict-markers --cov=agents --cov=shared --cov-report=term-missing --cov-fail-under=45"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 pythonpath = ["."]
@@ -70,5 +70,5 @@ disallow_any_generics = true
 exclude = ["^\\.agents/"]
 
 [[tool.mypy.overrides]]
-module = ["aiokafka.*", "temporalio.*", "prometheus_client.*"]
+module = ["aiokafka.*", "temporalio.*"]
 ignore_missing_imports = true

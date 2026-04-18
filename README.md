@@ -18,7 +18,7 @@ This repository currently includes:
 - Contract-first shared schemas and scoring logic
 - Kafka worker runtime for Heuristics, Provenance, and Web Consensus agents
 - Orchestrator ingest API with background Kafka result collection
-- Strict linting, type checking, and test gates
+- Strict linting, format checking, type checking, and test coverage gates
 - CI workflow for quality enforcement
 
 ## Quick Start
@@ -39,6 +39,7 @@ uv run pytest
 
 ```bash
 uv run ruff check .
+uv run ruff format --check .
 uv run mypy .
 ```
 
