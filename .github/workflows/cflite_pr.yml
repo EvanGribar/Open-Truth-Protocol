@@ -1,0 +1,30 @@
+name: ClusterFuzzLite PR
+on:
+  pull_request:
+    branches: [ main ]
+permissions:
+  contents: read
+jobs:
+  PR:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [address]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Build Fuzzers
+        uses: google/clusterfuzzlite/actions/build_fuzzers@8847e35bd64471f48014c0efcf0ca956e5fbb5e0 # v1
+        with:
+          sanitizer: ${{ matrix.sanitizer }}
+          language: python
+      - name: Run Fuzzers
+        uses: google/clusterfuzzlite/actions/run_fuzzers@8847e35bd64471f48014c0efcf0ca956e5fbb5e0 # v1
+        with:
+          sanitizer: ${{ matrix.sanitizer }}
+          fuzz-seconds: 600
+          mode: 'code-change'
