@@ -9,13 +9,8 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   lint:
-    name: lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,10 +39,8 @@ jobs:
         run: uv run mypy .
 
   test:
-    name: test (${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         python-version: ["3.12"]
     steps:
@@ -69,3 +62,12 @@ jobs:
 
       - name: Pytest
         run: uv run pytest
+
+  auto-approve:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    if: github.event.pull_request.user.login == 'EvanGribar'
+    steps:
+      - name: Auto-approve
+        uses: hmarr/auto-approve-action@f907406a37a75266850c905f8843940cb36a3089 # v4.0.0
