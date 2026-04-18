@@ -2,6 +2,8 @@
 
 This file defines the GitHub Issues backlog structure for Phase 1 implementation.
 
+Detailed sequencing and track-level exit criteria live in `docs/IMPLEMENTATION_PLAN.md`.
+
 ## Backlog Model
 - Create one Phase 1 epic issue.
 - Create child issues for each component listed below.
@@ -55,6 +57,7 @@ Create milestone: `Phase 1 MVP`.
 - All child issues closed with linked PRs.
 - CI, security, and quality gates passing on `main`.
 - Documentation reflects merged behavior.
+- `CHANGELOG.md` updated under `Unreleased` for user-visible changes.
 
 ## Kickoff Sequence (First 10 Issues)
 
@@ -80,3 +83,4 @@ Add this checklist to every issue body before work starts:
 - [ ] Tests identified (unit/integration/e2e)
 - [ ] Docs update required paths listed
 - [ ] Rollback strategy noted
+- [ ] Changelog update needed (`yes/no`) and rationale

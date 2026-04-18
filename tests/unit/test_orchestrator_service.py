@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
 import pytest
 
@@ -16,9 +17,13 @@ class _FakeProducer:
         self.messages.append((topic, payload, key))
 
 
+def _make_service() -> OrchestratorService:
+    return OrchestratorService(producer=cast(Any, _FakeProducer()))
+
+
 @pytest.mark.asyncio
 async def test_get_consensus_returns_none_until_job_complete() -> None:
-    service = OrchestratorService(producer=_FakeProducer())
+    service = _make_service()
     job = await service.create_job(
         media_type="image/jpeg",
         media_size_bytes=1024,
@@ -42,7 +47,7 @@ async def test_get_consensus_returns_none_until_job_complete() -> None:
 
 @pytest.mark.asyncio
 async def test_get_consensus_synthesizes_timeouts_after_workflow_deadline() -> None:
-    service = OrchestratorService(producer=_FakeProducer())
+    service = _make_service()
     job = await service.create_job(
         media_type="text/plain",
         media_size_bytes=120,
@@ -52,7 +57,9 @@ async def test_get_consensus_synthesizes_timeouts_after_workflow_deadline() -> N
     )
 
     # Simulate workflow deadline pass for text (30s).
-    stale_job = job.model_copy(update={"timestamp_utc": datetime.now(tz=UTC) - timedelta(seconds=40)})
+    stale_job = job.model_copy(
+        update={"timestamp_utc": datetime.now(tz=UTC) - timedelta(seconds=40)}
+    )
     service._jobs[job.task_id] = stale_job
 
     service.add_result(
@@ -76,7 +83,7 @@ async def test_get_consensus_synthesizes_timeouts_after_workflow_deadline() -> N
 
 @pytest.mark.asyncio
 async def test_add_result_ignores_inactive_agent() -> None:
-    service = OrchestratorService(producer=_FakeProducer())
+    service = _make_service()
     job = await service.create_job(
         media_type="text/plain",
         media_size_bytes=120,
@@ -100,7 +107,7 @@ async def test_add_result_ignores_inactive_agent() -> None:
 
 @pytest.mark.asyncio
 async def test_get_consensus_sets_degraded_mode_when_heuristics_inactive() -> None:
-    service = OrchestratorService(producer=_FakeProducer())
+    service = _make_service()
     job = await service.create_job(
         media_type="text/plain",
         media_size_bytes=120,
@@ -110,7 +117,9 @@ async def test_get_consensus_sets_degraded_mode_when_heuristics_inactive() -> No
     )
 
     # Simulate degraded mode where heuristics is not in active fan-out.
-    service._jobs[job.task_id] = job.model_copy(update={"active_agents": ["provenance", "web_consensus"]})
+    service._jobs[job.task_id] = job.model_copy(
+        update={"active_agents": ["provenance", "web_consensus"]}
+    )
 
     service.add_result(
         ResultEnvelope(

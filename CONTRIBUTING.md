@@ -39,8 +39,22 @@ Use the provided templates:
 
 - `.github/ISSUE_TEMPLATE/bug-report.md`
 - `.github/ISSUE_TEMPLATE/feature-request.md`
+- `.github/ISSUE_TEMPLATE/implementation-task.md`
 - `.github/ISSUE_TEMPLATE/security-vulnerability.md`
 - `.github/pull_request_template.md`
+
+For all coding backlog execution, prefer `.github/ISSUE_TEMPLATE/implementation-task.md` so every issue includes AGENTS references, tests, docs updates, and rollback notes.
+
+## Issue Lifecycle (Required)
+
+1. Open or pick one implementation issue.
+2. Confirm AGENTS.md section references are listed in the issue.
+3. Create a focused branch named by issue scope.
+4. Implement and keep scope limited to that issue.
+5. Run `make check` locally.
+6. Update docs and changelog in the same PR when behavior changes.
+7. Open PR, link issue with `Closes #<id>`, and request review.
+8. Merge only when all checks pass.
 
 ## Quality Gates
 

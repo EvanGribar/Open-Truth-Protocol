@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from agents.orchestrator.service import OrchestratorService
@@ -106,9 +106,12 @@ async def internal_results(result: ResultEnvelope) -> dict[str, str]:
 
 
 @app.get("/results/{task_id}")
-async def get_result(task_id: str) -> dict[str, Any]:
+async def get_result(task_id: str) -> Response | dict[str, Any]:
     service: OrchestratorService = app.state.service
+    if not service.has_task(task_id):
+        raise HTTPException(status_code=404, detail="task not found")
+
     consensus = service.get_consensus(task_id)
     if consensus is None:
-        raise HTTPException(status_code=404, detail="task not found or incomplete")
+        return Response(status_code=status.HTTP_202_ACCEPTED)
     return consensus.model_dump(mode="json")

@@ -10,6 +10,7 @@ This repository is maintained for public open-source collaboration.
 - `CONTRIBUTING.md` defines the quality gate for all pull requests.
 - `CODE_OF_CONDUCT.md` defines collaboration behavior expectations.
 - `SECURITY.md` defines responsible vulnerability disclosure.
+- `.github/project/BACKLOG.md` defines the issue-driven Phase 1 execution model.
 
 ## Current Scope
 
@@ -48,6 +49,15 @@ uv run mypy .
 ```bash
 make check
 ```
+
+## Backlog and Review Flow
+
+1. Create or pick a GitHub issue.
+2. Implement on a focused branch.
+3. Open a PR with `.github/pull_request_template.md`.
+4. Link the issue and ensure all checks pass before merge.
+
+Use the implementation execution plan in `docs/IMPLEMENTATION_PLAN.md` for AGENTS-aligned sequencing and definition-of-done criteria.
 
 ## Local Infrastructure
 
