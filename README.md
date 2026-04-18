@@ -24,19 +24,31 @@ This repository currently includes:
 
 ## Roadmap
 
-**Phase 1 Implementation Status**: In Progress (14 issues planned, 0 merged)
+**Phase 1 Implementation Status**: Tracks 1-2 Complete ✅ | Tracks 3-5 Ready to Start
 
-The public execution order is tracked in three documents:
-- **[docs/GITHUB_ISSUES_ROADMAP.md](docs/GITHUB_ISSUES_ROADMAP.md)** — Detailed GitHub issues with estimation, dependencies, and DoD criteria
+The public execution order is tracked in four documents:
+- **[docs/GITHUB_ISSUES_ROADMAP.md](docs/GITHUB_ISSUES_ROADMAP.md)** — 13 detailed GitHub issues with estimation, dependencies, and DoD criteria
+- **[docs/IMPLEMENTATION_GUIDE.md](docs/IMPLEMENTATION_GUIDE.md)** — Developer quick-start with patterns and examples
 - **[docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)** — Track-level sequencing and cross-functional dependencies
-- **[.github/project/BACKLOG.md](.github/project/BACKLOG.md)** — Issue labels, milestones, and Phase 1 definition of done
+- **[docs/PHASE1_PROGRESS_REPORT.md](docs/PHASE1_PROGRESS_REPORT.md)** — Detailed status on completed work
 
 **Phase 1 Tracks**:
-1. **Track A (Orchestrator)**: Enforce per-agent timeouts, emit degraded_mode, timeout edge-case coverage
-2. **Track B (Shared)**: Validate routing matrix, scorer confidence/verdict boundaries
-3. **Track C (Agents)**: Real signal pipelines (text heuristics, text provenance, web cache)
-4. **Track D (Ledger)**: Commitment service skeleton and contract tests
-5. **Track E (Release)**: Documentation sync and Phase 1 completion
+1. ✅ **Track 1 (Orchestrator)**: Enforce per-agent timeouts, emit degraded_mode, timeout edge-case coverage
+2. ✅ **Track 2 (Shared)**: Validate routing matrix, scorer confidence/verdict boundaries (60/60 tests, 58% coverage)
+3. ⏭️ **Track 3 (Agents)**: Real signal pipelines (text heuristics, text provenance, web cache) — Ready to start
+4. ⏭️ **Track 4 (Ledger)**: Commitment service skeleton and contract tests
+5. ⏭️ **Track 5 (Release)**: Documentation sync and Phase 1 completion
+
+## Contributing
+
+**Want to contribute?** Start here:
+
+1. Read [AGENTS.md](AGENTS.md) § for your task
+2. Follow [docs/IMPLEMENTATION_GUIDE.md](docs/IMPLEMENTATION_GUIDE.md) for the dev workflow
+3. Pick an issue from [docs/GITHUB_ISSUES_ROADMAP.md](docs/GITHUB_ISSUES_ROADMAP.md)
+4. Create a focused branch and implement per TDD pattern
+5. Run `make check` to verify all quality gates
+6. Open a PR referencing the AGENTS.md section
 
 ## Quick Start
 
@@ -68,13 +80,13 @@ make check
 
 ## Backlog and Review Flow
 
-1. Create or pick a GitHub issue.
-2. Implement on a focused branch.
-3. Open a PR with `.github/pull_request_template.md`.
-4. Link the issue and ensure all checks pass before merge.
+1. Create or pick a GitHub issue from [docs/GITHUB_ISSUES_ROADMAP.md](docs/GITHUB_ISSUES_ROADMAP.md).
+2. Follow the dev workflow in [docs/IMPLEMENTATION_GUIDE.md](docs/IMPLEMENTATION_GUIDE.md).
+3. Implement on a focused branch with TDD pattern.
+4. Open a PR with `.github/pull_request_template.md`, referencing AGENTS.md section(s).
+5. Ensure all checks pass (`make check`, tests, coverage) before merge.
 
-Use the implementation execution plan in `docs/IMPLEMENTATION_PLAN.md` for AGENTS-aligned sequencing and definition-of-done criteria.
-Use GitHub Issues as the backlog source of truth and keep roadmap, backlog, and release notes synchronized with each merged PR.
+**Important**: Keep AGENTS.md, roadmap, GitHub issues, and CHANGELOG synchronized with each merged PR.
 
 ## Local Infrastructure
 
