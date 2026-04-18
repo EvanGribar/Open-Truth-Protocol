@@ -1,0 +1,13 @@
+# Changelog
+
+All notable changes to this project are documented in this file.
+
+The format is based on Keep a Changelog, and this project follows Semantic Versioning.
+
+## [Unreleased]
+
+### Added
+
+- OSS governance baseline documents (license, code of conduct, security policy)
+- Contributor tooling configuration for local quality gate automation
+- Expanded onboarding and local development guidance

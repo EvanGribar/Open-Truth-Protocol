@@ -10,6 +10,13 @@ All pull requests must pass:
 - `mypy .`
 - `pytest`
 
+Use pre-commit hooks to run checks locally before push:
+
+```bash
+uv run pre-commit install
+uv run pre-commit run --all-files
+```
+
 ## Contract Change Policy
 
 If you modify schema fields, score logic, or verdict behavior:
@@ -26,10 +33,22 @@ If you modify schema fields, score logic, or verdict behavior:
 uv sync --extra dev
 ```
 
-2. Run checks:
+2. Start local dependencies:
+
+```bash
+docker compose up -d
+```
+
+3. Run checks:
 
 ```bash
 uv run ruff check .
 uv run mypy .
 uv run pytest
+```
+
+4. Or run all quality checks with one command:
+
+```bash
+make check
 ```

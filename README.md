@@ -2,6 +2,15 @@
 
 Core implementation scaffold for the Open Truth Protocol (OTP) swarm defined in AGENTS.md.
 
+## Repository Standards
+
+This repository is maintained for public open-source collaboration.
+
+- `AGENTS.md` is the authoritative technical contract.
+- `CONTRIBUTING.md` defines the quality gate for all pull requests.
+- `CODE_OF_CONDUCT.md` defines collaboration behavior expectations.
+- `SECURITY.md` defines responsible vulnerability disclosure.
+
 ## Current Scope
 
 This repository currently includes:
@@ -31,6 +40,31 @@ uv run pytest
 uv run ruff check .
 uv run mypy .
 ```
+
+4. Run all local quality gates:
+
+```bash
+make check
+```
+
+## Local Infrastructure
+
+Start Kafka, Redis, S3 emulation, Weaviate, Temporal, and the Orchestrator API:
+
+```bash
+docker compose up --build
+```
+
+Or start only infra dependencies:
+
+```bash
+docker compose -f docker/docker-compose.infra.yml up -d
+```
+
+After startup:
+
+- API health: `http://localhost:8000/health`
+- Temporal UI: `http://localhost:8088`
 
 ## Core Contracts
 

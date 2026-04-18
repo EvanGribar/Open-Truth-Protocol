@@ -1,0 +1,8 @@
+* @EvanGribar
+
+AGENTS.md @EvanGribar
+shared/schemas.py @EvanGribar
+shared/scorer.py @EvanGribar
+agents/orchestrator/ @EvanGribar
+agents/heuristics/ @EvanGribar
+agents/provenance/ @EvanGribar
