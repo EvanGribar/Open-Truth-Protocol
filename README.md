@@ -1,5 +1,8 @@
 # Open Truth Protocol
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/EvanGribar/Open-Truth-Protocol/badge)](https://scorecard.dev/viewer/?uri=github.com/EvanGribar/Open-Truth-Protocol)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/9944/badge)](https://bestpractices.coreinfrastructure.org/projects/9944)
+
 ## What is OTP?
 
 **OTP is a decentralized, open-source swarm of AI agents that collectively verify the authenticity of digital media.**
