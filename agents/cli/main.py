@@ -7,7 +7,7 @@ from pathlib import Path
 import httpx
 
 from shared.env import get_settings
-from shared.observability import configure_logging, get_logger
+from shared.observability import get_logger
 
 logger = get_logger("cli")
 
