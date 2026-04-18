@@ -3,76 +3,76 @@
 # - area: for ownership/surface
 # - type: for nature of change
 
-area: agents:
+'area: agents':
   - changed-files:
       - any-glob-to-any-file:
-          - "agents/**"
+          - 'agents/**'
 
-area: shared:
+'area: shared':
   - changed-files:
       - any-glob-to-any-file:
-          - "shared/**"
+          - 'shared/**'
 
-area: tests:
+'area: tests':
   - changed-files:
       - any-glob-to-any-file:
-          - "tests/**"
+          - 'tests/**'
 
-area: docs:
+'area: docs':
   - changed-files:
       - any-glob-to-any-file:
-          - "README.md"
-          - "CONTRIBUTING.md"
-          - "AGENTS.md"
-          - "CHANGELOG.md"
-          - "SECURITY.md"
-          - "CODE_OF_CONDUCT.md"
-          - "docs/**"
+          - 'README.md'
+          - 'CONTRIBUTING.md'
+          - 'AGENTS.md'
+          - 'CHANGELOG.md'
+          - 'SECURITY.md'
+          - 'CODE_OF_CONDUCT.md'
+          - 'docs/**'
 
-area: infra:
+'area: infra':
   - changed-files:
       - any-glob-to-any-file:
-          - "docker/**"
-          - "docker-compose.yml"
-          - "config/**"
+          - 'docker/**'
+          - 'docker-compose.yml'
+          - 'config/**'
 
-area: ci:
+'area: ci':
   - changed-files:
       - any-glob-to-any-file:
-          - ".github/workflows/**"
-          - ".pre-commit-config.yaml"
+          - '.github/workflows/**'
+          - '.pre-commit-config.yaml'
 
-type: feature:
+'type: feature':
   - head-branch:
-      - "^feat(/|-)"
-      - "^feature(/|-)"
+      - '^feat[/-]'
+      - '^feature[/-]'
 
-type: bugfix:
+'type: bugfix':
   - head-branch:
-      - "^fix(/|-)"
-      - "^bugfix(/|-)"
-      - "^hotfix(/|-)"
+      - '^fix[/-]'
+      - '^bugfix[/-]'
+      - '^hotfix[/-]'
 
-type: refactor:
+'type: refactor':
   - head-branch:
-      - "^refactor(/|-)"
-      - "^chore/refactor(/|-)"
+      - '^refactor[/-]'
+      - '^chore/refactor[/-]'
 
-type: chore:
+'type: chore':
   - head-branch:
-      - "^chore(/|-)"
-      - "^build(/|-)"
-      - "^ci(/|-)"
+      - '^chore[/-]'
+      - '^build[/-]'
+      - '^ci[/-]'
 
-type: docs:
+'type: docs':
   - head-branch:
-      - "^docs(/|-)"
+      - '^docs[/-]'
   - changed-files:
       - any-glob-to-any-file:
-          - "README.md"
-          - "CONTRIBUTING.md"
-          - "AGENTS.md"
-          - "CHANGELOG.md"
-          - "SECURITY.md"
-          - "CODE_OF_CONDUCT.md"
-          - "docs/**"
+          - 'README.md'
+          - 'CONTRIBUTING.md'
+          - 'AGENTS.md'
+          - 'CHANGELOG.md'
+          - 'SECURITY.md'
+          - 'CODE_OF_CONDUCT.md'
+          - 'docs/**'
