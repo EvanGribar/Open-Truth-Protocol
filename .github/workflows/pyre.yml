@@ -33,9 +33,10 @@ jobs:
       security-events: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           submodules: true
+          persist-credentials: false
 
       - name: Run Pyre
         uses: facebook/pyre-action@60697a7858f7cc8470d8cc494a3cf2ad6b06560d
