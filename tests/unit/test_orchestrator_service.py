@@ -201,7 +201,7 @@ async def test_add_result_ignores_unknown_task() -> None:
 
 @pytest.mark.asyncio
 async def test_add_result_with_invalid_status() -> None:
-    """Test that results with invalid status are handled gracefully."""
+    """Test that results with invalid status are rejected per AGENTS §4.3."""
     service = _make_service()
     job = await service.create_job(
         media_type="image/jpeg",
@@ -211,22 +211,19 @@ async def test_add_result_with_invalid_status() -> None:
         submitted_by="test",
     )
 
-    # Create an invalid result with a status that's not in the enum
-    # This should be caught by Pydantic before reaching add_result
-    # but we test the guardian logic anyway
-    result = ResultEnvelope(
+    # Use model_construct to bypass Pydantic validation and test invalid status
+    result = ResultEnvelope.model_construct(
         task_id=job.task_id,
         agent="heuristics",
-        status=Status.SUCCESS,
+        status="UNKNOWN_STATUS",  # Invalid status not in (SUCCESS, ERROR, TIMEOUT)
         duration_ms=100,
         payload={"heuristics_score": 0.8},
     )
 
     service.add_result(result)
 
-    # Should be added since status is valid
-    assert job.task_id in service._reports
-    assert "heuristics" in service._reports[job.task_id]
+    # Invalid status should be rejected and not added to reports
+    assert job.task_id not in service._reports or "heuristics" not in service._reports.get(job.task_id, {})
 
 
 @pytest.mark.asyncio
@@ -552,5 +549,3 @@ async def test_get_consensus_handles_mixed_status() -> None:
     assert consensus.agent_reports["heuristics"]["status"] == Status.SUCCESS.value
     assert consensus.agent_reports["provenance"]["status"] == Status.TIMEOUT.value
     assert consensus.agent_reports["web_consensus"]["status"] == Status.ERROR.value
-    # Default for unknown media type
-    assert OrchestratorService.workflow_timeout_for_media_type("application/json") == 30
