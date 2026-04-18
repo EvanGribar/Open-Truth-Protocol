@@ -68,7 +68,7 @@ async def verify_file(file_path: str, api_url: str) -> None:
                         duration = report.get("duration_ms", 0)
                         print(f"  - {agent:15}: {status} ({duration}ms)")
                     break
-                elif res.status_code == 404:
+                elif res.status_code in {202, 404}:
                     print(".", end="", flush=True)
                     await asyncio.sleep(2.0)
                 else:
