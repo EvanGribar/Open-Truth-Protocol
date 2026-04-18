@@ -1,26 +1,69 @@
 # Open Truth Protocol
 
-Core implementation scaffold for the Open Truth Protocol (OTP) swarm defined in AGENTS.md.
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/EvanGribar/Open-Truth-Protocol/badge)](https://scorecard.dev/viewer/?uri=github.com/EvanGribar/Open-Truth-Protocol)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/9944/badge)](https://bestpractices.coreinfrastructure.org/projects/9944)
 
-## Repository Standards
+## What is OTP?
 
-This repository is maintained for public open-source collaboration.
+**OTP is a decentralized, open-source swarm of AI agents that collectively verify the authenticity of digital media.**
 
-- `AGENTS.md` is the authoritative technical contract.
-- `CONTRIBUTING.md` defines the quality gate for all pull requests.
-- `CODE_OF_CONDUCT.md` defines collaboration behavior expectations.
-- `SECURITY.md` defines responsible vulnerability disclosure.
-- `.github/project/BACKLOG.md` defines the issue-driven Phase 1 execution model.
+A piece of media—image, video, audio, or text—enters the pipeline. Multiple specialized agents analyze it for authenticity signals. A cryptographically anchored `TruthConsensus` record exits, immutably pinned to IPFS and hashed to a public blockchain. Every verification is:
 
-## Current Scope
+- **Transparent.** Each agent surfaces human-readable evidence for its score
+- **Asynchronous.** Agents run in parallel; no single point of failure
+- **Immutable.** Every attestation is permanently auditable
+- **Extensible.** Any developer can write and submit a new agent for inclusion
 
-This repository currently includes:
+## Why OTP?
 
-- Contract-first shared schemas and scoring logic
-- Kafka worker runtime for Heuristics, Provenance, and Web Consensus agents
-- Orchestrator ingest API with background Kafka result collection
-- Strict linting, format checking, type checking, and test coverage gates
-- CI workflow for quality enforcement
+Digital authenticity is broken. Deepfakes are indistinguishable from reality. AI-generated text floods social media. Communities have no way to verify what they see.
+
+Existing solutions are siloed: X has a fact-check label, Facebook has a label, TikTok has a label—each proprietary, each a black box, each governed by a corporation. OTP inverts this model: **the protocol is owned by the community.**
+
+- **Not a content moderator.** OTP scores authenticity, not legality. It cannot be weaponized for censorship.
+- **Not a black box.** Every score is explainable. If an agent detects synthesis artifacts, it shows you what it found.
+- **Not a legal oracle.** OTP scores are probabilistic attestations, not admissible evidence. Communities use them as a baseline for discussion, not as fact.
+
+## Repository Structure
+
+This repository is the core implementation of OTP:
+
+- **`AGENTS.md`** — The authoritative technical contract. Every agent, every interface, every timeout lives here.
+- **`shared/`** — Contract-first schemas, Kafka client, routing matrix, and scoring logic
+- **`agents/`** — Orchestrator, Heuristics, Provenance, and Web Consensus agents
+- **`tests/`** — Comprehensive unit and integration tests (60+ tests, 58%+ coverage)
+
+## Contributing Guidelines
+
+This repository is maintained for public open-source collaboration:
+
+- **`AGENTS.md`** is the authoritative technical contract.
+- **`CONTRIBUTING.md`** defines the quality gate for all pull requests.
+- **`CODE_OF_CONDUCT.md`** defines collaboration behavior expectations.
+- **`SECURITY.md`** defines responsible vulnerability disclosure.
+- **GitHub Issues** and `.github/project/BACKLOG.md` track the Phase 1 execution model.
+
+## Current Implementation Status
+
+**Phase 1 Tracks**: 1-4 Complete ✅ | Track 5 Ready to Finalize
+
+- ✅ **Track 1 (Orchestrator)**: Per-agent timeouts, degraded-mode logic, edge-case coverage
+- ✅ **Track 2 (Shared)**: Routing matrix, scoring verdict boundaries, confidence discounting
+- ✅ **Track 3 (CLI/Benchmark)**: `otp-verify` CLI tool and `otp-benchmark` evaluation suite
+- ✅ **Track 4 (Ledger)**: `LedgerService` interface and no-op commitment integration
+- ⏭️ **Track 5 (Release)**: Documentation finalization and Phase 1 completion
+
+## How to Contribute
+
+**Start here:**
+
+1. Read [AGENTS.md](AGENTS.md) for your task's section and the [Implementation Guide](docs/IMPLEMENTATION_GUIDE.md) for execution patterns
+2. Follow [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow
+3. Pick an issue from the GitHub Issues backlog or [.github/project/BACKLOG.md](.github/project/BACKLOG.md)
+4. Create a focused branch and implement with tests
+5. Run quality gates (see Quick Start) to verify all requirements
+6. Open a PR with clear reference to AGENTS.md section(s)
+
 
 ## Quick Start
 
@@ -50,14 +93,19 @@ uv run mypy .
 make check
 ```
 
-## Backlog and Review Flow
+## Backlog & Issue Workflow
 
-1. Create or pick a GitHub issue.
-2. Implement on a focused branch.
-3. Open a PR with `.github/pull_request_template.md`.
-4. Link the issue and ensure all checks pass before merge.
+The source of truth for Phase 1 work is GitHub Issues. Structure:
 
-Use the implementation execution plan in `docs/IMPLEMENTATION_PLAN.md` for AGENTS-aligned sequencing and definition-of-done criteria.
+1. **Create an issue** referencing the relevant AGENTS.md section(s)
+2. **Add labels** before coding: one `type:*`, one `area:*`, optionally `phase: 1`
+3. **Implement on a branch** with tests and documentation updates
+4. **Open a PR** using `.github/pull_request_template.md`
+5. **Keep AGENTS.md, README.md, and CHANGELOG.md in sync**
+
+See `.github/project/BACKLOG.md` for the Phase 1 issue structure and child issue templates.
+
+**Important**: Every merged PR should have a corresponding CHANGELOG entry under `Unreleased`.
 
 ## Local Infrastructure
 

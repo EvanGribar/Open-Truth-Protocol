@@ -10,12 +10,19 @@ from pydantic import BaseModel, ConfigDict, Field
 from temporalio.client import Client
 from temporalio.worker import Worker
 
-from agents.orchestrator.activities import collect_results, dispatch_job, set_orchestrator_service
+from agents.orchestrator.activities import (
+    collect_results,
+    commit_to_ledger,
+    dispatch_job,
+    set_ledger_service,
+    set_orchestrator_service,
+)
 from agents.orchestrator.service import OrchestratorService
 from agents.orchestrator.workflow import VerificationWorkflow
 from shared.constants import RESULT_TOPIC_PREFIX
 from shared.env import get_settings
 from shared.kafka_client import KafkaConsumerClient, KafkaProducerClient
+from shared.ledger import NoOpLedgerService
 from shared.observability import configure_logging, get_logger
 from shared.schemas import ResultEnvelope
 
@@ -63,7 +70,10 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     await result_consumer.start()
 
     service = OrchestratorService(producer=producer)
+    ledger_service = NoOpLedgerService()  # Use NoOp for Phase 1
+
     set_orchestrator_service(service)
+    set_ledger_service(ledger_service)
 
     temporal_client = await Client.connect(
         settings.temporal_host,
@@ -73,7 +83,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         temporal_client,
         task_queue=settings.temporal_task_queue,
         workflows=[VerificationWorkflow],
-        activities=[dispatch_job, collect_results],
+        activities=[dispatch_job, collect_results, commit_to_ledger],
     )
 
     app.state.producer = producer
@@ -97,6 +107,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
             await app.state.result_consumer_task
 
         set_orchestrator_service(None)
+        set_ledger_service(None)
         await result_consumer.stop()
         await producer.stop()
         logger.info("orchestrator_stopped")
@@ -112,6 +123,17 @@ async def health() -> dict[str, str]:
 
 @app.post("/ingest", response_model=IngestResponse)
 async def ingest(request: IngestRequest) -> IngestResponse:
+    """Ingest media for verification.
+
+    Args:
+        request: IngestRequest with media_type, blob_uri, etc.
+
+    Returns:
+        IngestResponse with task_id for polling results
+
+    Raises:
+        HTTPException: If temporal workflow fails to start
+    """
     service: OrchestratorService = app.state.service
     client: Client = app.state.temporal_client
 
@@ -134,11 +156,33 @@ async def ingest(request: IngestRequest) -> IngestResponse:
             id=f"verify-{job.task_id}",
             task_queue=app.state.temporal_task_queue,
         )  # type: ignore[call-overload]
+        logger.info(
+            "workflow_started",
+            task_id=job.task_id,
+            media_type=request.media_type,
+            timeout_seconds=timeout_seconds,
+        )
     except Exception as exc:
         logger.exception(
-            "temporal_start_failed_fallback_dispatch", error=str(exc), task_id=job.task_id
+            "temporal_start_failed_fallback_dispatch",
+            error=str(exc),
+            task_id=job.task_id,
+            error_type=type(exc).__name__,
         )
-        await service.dispatch_pending_job(job.task_id)
+        try:
+            await service.dispatch_pending_job(job.task_id)
+            logger.info("fallback_dispatch_success", task_id=job.task_id)
+        except Exception as fallback_exc:
+            logger.exception(
+                "fallback_dispatch_failed",
+                task_id=job.task_id,
+                error=str(fallback_exc),
+                error_type=type(fallback_exc).__name__,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to start verification workflow and fallback dispatch",
+            ) from fallback_exc
 
     return IngestResponse(task_id=job.task_id)
 
@@ -152,11 +196,22 @@ async def internal_results(result: ResultEnvelope) -> dict[str, str]:
 
 @app.get("/results/{task_id}")
 async def get_result(task_id: str) -> Response | dict[str, Any]:
+    """Get verification results for a task.
+
+    Returns:
+        - 200 OK with TruthConsensus JSON if results are ready
+        - 202 ACCEPTED if results are still being processed
+        - 404 NOT FOUND if task_id doesn't exist
+    """
     service: OrchestratorService = app.state.service
     if not service.has_task(task_id):
+        logger.debug("result_query_not_found", task_id=task_id)
         raise HTTPException(status_code=404, detail="task not found")
 
     consensus = service.get_consensus(task_id)
     if consensus is None:
+        logger.debug("result_query_still_processing", task_id=task_id)
         return Response(status_code=status.HTTP_202_ACCEPTED)
+
+    logger.info("result_query_ready", task_id=task_id, verdict=consensus.verdict)
     return consensus.model_dump(mode="json")
