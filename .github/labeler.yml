@@ -1,0 +1,78 @@
+# Pull request label rules for actions/labeler.
+# Label naming follows enterprise-style prefixes:
+# - area: for ownership/surface
+# - type: for nature of change
+
+area: agents:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "agents/**"
+
+area: shared:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "shared/**"
+
+area: tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+
+area: docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "README.md"
+          - "CONTRIBUTING.md"
+          - "AGENTS.md"
+          - "CHANGELOG.md"
+          - "SECURITY.md"
+          - "CODE_OF_CONDUCT.md"
+          - "docs/**"
+
+area: infra:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docker/**"
+          - "docker-compose.yml"
+          - "config/**"
+
+area: ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".pre-commit-config.yaml"
+
+type: feature:
+  - head-branch:
+      - "^feat(/|-)"
+      - "^feature(/|-)"
+
+type: bugfix:
+  - head-branch:
+      - "^fix(/|-)"
+      - "^bugfix(/|-)"
+      - "^hotfix(/|-)"
+
+type: refactor:
+  - head-branch:
+      - "^refactor(/|-)"
+      - "^chore/refactor(/|-)"
+
+type: chore:
+  - head-branch:
+      - "^chore(/|-)"
+      - "^build(/|-)"
+      - "^ci(/|-)"
+
+type: docs:
+  - head-branch:
+      - "^docs(/|-)"
+  - changed-files:
+      - any-glob-to-any-file:
+          - "README.md"
+          - "CONTRIBUTING.md"
+          - "AGENTS.md"
+          - "CHANGELOG.md"
+          - "SECURITY.md"
+          - "CODE_OF_CONDUCT.md"
+          - "docs/**"
