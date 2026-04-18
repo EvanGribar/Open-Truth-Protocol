@@ -8,11 +8,17 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Added
 
+- Comprehensive routing matrix tests for all media types (image, video, audio, text)
+- Edge-case routing tests for missing/empty agent sets
+- Extended scorer tests for confidence discount behavior and verdict boundaries
+- Media-type weight validation tests showing text vs. image weight differences
+- C2PA absence weight redistribution tests
+- Tests for single vs. multiple agent failure verdict handling
 - Enhanced error handling and logging in orchestrator service and main API
 - Comprehensive validation and error messages for agent result ingestion
 - Failure count tracking in consensus building for improved degraded-mode detection
 - Structured logging with task context throughout orchestrator lifecycle
-- Enhanced test coverage for error handling paths and edge cases (57.29% project coverage)
+- Enhanced test coverage for error handling paths and edge cases (57.42% project coverage)
 - Tests for timeout synthesis, inactive agent rejection, and degraded mode validation
 - OSS governance baseline documents (license, code of conduct, security policy)
 - Contributor tooling configuration for local quality gate automation

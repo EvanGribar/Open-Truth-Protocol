@@ -16,10 +16,7 @@ def test_compute_truth_score_with_two_successful_agents() -> None:
             "status": "success",
             "payload": {"provenance_score": 0.6, "c2pa_manifest_present": True},
         },
-        "web_consensus": {
-            "status": "timeout",
-            "payload": None,
-        },
+        "web_consensus": {"status": "timeout", "payload": None},
     }
     score = compute_truth_score("image/jpeg", reports)
     assert 0.7 < score <= 1.0
