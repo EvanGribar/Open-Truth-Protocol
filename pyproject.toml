@@ -47,6 +47,11 @@ dev = [
   "ruff>=0.7.0,<0.8.0",
 ]
 
+[dependency-groups]
+dev = [
+    "atheris",
+]
+
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers --cov=agents --cov=shared --cov-report=term-missing --cov-fail-under=45"
 testpaths = ["tests"]
