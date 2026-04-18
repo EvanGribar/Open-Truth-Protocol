@@ -21,7 +21,7 @@ name = "opentruthprotocol"
 version = "0.1.0"
 description = "Open Truth Protocol core services"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 authors = [{ name = "Open Truth Protocol Contributors" }]
 dependencies = [
   "aiokafka>=0.11.0,<0.12.0",
@@ -60,7 +60,7 @@ pythonpath = ["."]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py311"
 exclude = [".agents", ".venv", "venv", "__pycache__"]
 
 [tool.ruff.lint]
@@ -68,7 +68,7 @@ select = ["E", "F", "I", "B", "UP", "ASYNC", "SIM", "C4", "RUF"]
 ignore = ["E501"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
