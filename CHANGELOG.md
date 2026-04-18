@@ -8,26 +8,20 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ### Added
 
-- Comprehensive routing matrix tests for all media types (image, video, audio, text)
-- Edge-case routing tests for missing/empty agent sets
-- Extended scorer tests for confidence discount behavior and verdict boundaries
-- Media-type weight validation tests showing text vs. image weight differences
-- C2PA absence weight redistribution tests
-- Tests for single vs. multiple agent failure verdict handling
-- Enhanced error handling and logging in orchestrator service and main API
-- Comprehensive validation and error messages for agent result ingestion
-- Failure count tracking in consensus building for improved degraded-mode detection
-- Structured logging with task context throughout orchestrator lifecycle
-- Enhanced test coverage for error handling paths and edge cases (57.42% project coverage)
-- Tests for timeout synthesis, inactive agent rejection, and degraded mode validation
-- OSS governance baseline documents (license, code of conduct, security policy)
-- Contributor tooling configuration for local quality gate automation
-- Expanded onboarding and local development guidance
-- AGENTS-aligned implementation execution plan at `docs/IMPLEMENTATION_PLAN.md`
-- Kafka worker loops for heuristics, provenance, and web consensus agents
-- Agent-side Redis-backed deduplication enforcement on task_id
-- Orchestrator background consumer for `otp.results.*` result aggregation
-- Docker Compose wiring for all three analysis agents
+- GitHub Issues Roadmap at `docs/GITHUB_ISSUES_ROADMAP.md` with 13-issue detailed plan for Phase 1
+- Phase 1 Progress Report at `docs/PHASE1_PROGRESS_REPORT.md` tracking Track 1-2 completion
+- Comprehensive orchestrator timeout and degraded-mode test coverage (16→60 tests)
+- Scorer verdict boundary tests covering all 5 verdict bands (0.85-1.00, 0.60-0.84, 0.40-0.59, 0.15-0.39, 0.00-0.14)
+- Scorer confidence discount tests validating pull-toward-neutral behavior for low confidence
+- Scorer weight distribution tests validating text vs image weight differences
+- Tests for mixed agent status scenarios (SUCCESS/ERROR/TIMEOUT combinations)
+
+### Changed
+
+- Improved `degraded_mode` logic in orchestrator service to match AGENTS.md §8:
+  - Now set to true when 2+ agents fail/timeout OR heuristics is inactive
+  - Previously only set when heuristics was inactive
+- Updated README with Phase 1 implementation roadmap snapshot
 - GitHub issue templates for bug, feature, and security reporting flows
 - Pull request template with AGENTS.md contract and benchmark checklist
 - Phase 1 backlog workflow document at `.github/project/BACKLOG.md`
