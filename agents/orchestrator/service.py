@@ -5,6 +5,8 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
+from cachetools import TTLCache
+
 from shared.constants import HARD_TIMEOUT_SECONDS, JOB_TOPIC_PREFIX
 from shared.kafka_client import KafkaProducerClient
 from shared.observability import get_logger
@@ -25,9 +27,10 @@ logger = get_logger("orchestrator")
 class OrchestratorService:
     def __init__(self, producer: KafkaProducerClient) -> None:
         self._producer = producer
-        self._reports: dict[str, dict[str, dict[str, Any]]] = {}
-        self._jobs: dict[str, JobPayload] = {}
-        self._consensus_cache: dict[str, TruthConsensus] = {}
+        # Prevent memory leaks with TTL caches (per review feedback)
+        self._reports: dict[str, dict[str, Any]] = TTLCache(maxsize=1000, ttl=3600)  # type: ignore
+        self._jobs: dict[str, JobPayload] = TTLCache(maxsize=1000, ttl=3600)  # type: ignore
+        self._consensus_cache: dict[str, TruthConsensus] = TTLCache(maxsize=1000, ttl=3600)  # type: ignore
 
     @staticmethod
     def _timeout_error_payload(agent: str) -> dict[str, Any]:

@@ -22,7 +22,7 @@ class LedgerService(Protocol):
         Returns:
             LedgerReceipt if successful, None otherwise.
         """
-        ...
+        pass
 
 
 class NoOpLedgerService:
