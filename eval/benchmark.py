@@ -10,7 +10,7 @@ logger = get_logger("benchmark")
 
 async def run_benchmark() -> None:
     """Runs all agents against a reference dataset and reports accuracy.
-    
+
     This is a Phase 1 MVP stub. In Phase 2, this will:
     1. Load a dataset from s3://otp-benchmarks/
     2. Dispatch verification jobs for each item.
@@ -18,10 +18,10 @@ async def run_benchmark() -> None:
     4. Generate a HTML/Markdown report.
     """
     configure_logging("INFO")
-    
+
     print("=== OTP Swarm Benchmark (Phase 1 Stub) ===")
     print("Scenario: Synthetic Media Detection (Image/Text)")
-    
+
     # Mock results for demonstration
     results: list[dict[str, Any]] = [
         {"type": "image", "label": "authentic", "predicted": "LIKELY_AUTHENTIC", "correct": True},
@@ -29,13 +29,13 @@ async def run_benchmark() -> None:
         {"type": "text", "label": "authentic", "predicted": "UNVERIFIED", "correct": True},
         {"type": "text", "label": "synthetic", "predicted": "LIKELY_SYNTHETIC", "correct": True},
     ]
-    
+
     correct_count = sum(1 for r in results if r["correct"])
     accuracy = (correct_count / len(results)) * 100
-    
+
     print(f"\nAccuracy: {accuracy:.1f}%")
     print(f"Total Items: {len(results)}")
-    
+
     logger.info("benchmark_completed", accuracy=accuracy, total=len(results))
 
 

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import MutableMapping
 from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
 from cachetools import TTLCache
 
-from shared.constants import HARD_TIMEOUT_SECONDS, JOB_TOPIC_PREFIX
+from shared.constants import JOB_TOPIC_PREFIX, WORKFLOW_TIMEOUTS
 from shared.kafka_client import KafkaProducerClient
 from shared.observability import get_logger
 from shared.routing import get_active_agents
@@ -28,9 +29,11 @@ class OrchestratorService:
     def __init__(self, producer: KafkaProducerClient) -> None:
         self._producer = producer
         # Prevent memory leaks with TTL caches (per review feedback)
-        self._reports: dict[str, dict[str, Any]] = TTLCache(maxsize=1000, ttl=3600)  # type: ignore
-        self._jobs: dict[str, JobPayload] = TTLCache(maxsize=1000, ttl=3600)  # type: ignore
-        self._consensus_cache: dict[str, TruthConsensus] = TTLCache(maxsize=1000, ttl=3600)  # type: ignore
+        self._reports: MutableMapping[str, dict[str, Any]] = TTLCache(maxsize=1000, ttl=3600)
+        self._jobs: MutableMapping[str, JobPayload] = TTLCache(maxsize=1000, ttl=3600)
+        self._consensus_cache: MutableMapping[str, TruthConsensus] = TTLCache(
+            maxsize=1000, ttl=3600
+        )
 
     @staticmethod
     def _timeout_error_payload(agent: str) -> dict[str, Any]:
@@ -319,10 +322,8 @@ class OrchestratorService:
 
     @staticmethod
     def workflow_timeout_for_media_type(media_type: str) -> int:
-        if media_type.startswith("text/"):
-            return 30
-        if media_type.startswith("video/"):
-            return 300
-        if media_type.startswith("image/") or media_type.startswith("audio/"):
-            return 60
-        return HARD_TIMEOUT_SECONDS["heuristics"]
+        """Determines the workflow timeout based on the media type (per AGENTS.md §5.1)."""
+        for prefix, timeout in WORKFLOW_TIMEOUTS.items():
+            if media_type.startswith(prefix):
+                return timeout
+        return 60  # Default fallback

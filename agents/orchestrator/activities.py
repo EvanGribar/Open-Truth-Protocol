@@ -86,7 +86,9 @@ async def commit_to_ledger(task_id: str) -> dict[str, Any] | None:
     receipt = await ledger.commit_consensus(consensus)
     if receipt:
         service.update_ledger_receipt(task_id, receipt)
-        activity.logger.info("commit_to_ledger_success", task_id=task_id, tx_hash=receipt.transaction_hash)
+        activity.logger.info(
+            "commit_to_ledger_success", task_id=task_id, tx_hash=receipt.transaction_hash
+        )
         return receipt.model_dump(mode="json")
 
     return None

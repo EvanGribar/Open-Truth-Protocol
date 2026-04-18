@@ -37,6 +37,7 @@ dependencies = [
   "structlog>=24.4.0,<25.0.0",
   "temporalio>=1.9.0,<2.0.0",
   "uvicorn[standard]>=0.34.0,<0.35.0",
+  "types-cachetools>=5.5.0",
 ]
 
 [project.scripts]
@@ -45,6 +46,7 @@ otp-benchmark = "eval.benchmark:main"
 
 [project.optional-dependencies]
 dev = [
+  "atheris>=2.3.0",
   "mypy>=1.13.0,<2.0.0",
   "pre-commit>=4.0.1,<5.0.0",
   "pytest>=9.0.3,<10.0.0",
@@ -55,7 +57,6 @@ dev = [
 
 [dependency-groups]
 dev = [
-    "atheris",
 ]
 
 [tool.pytest.ini_options]
