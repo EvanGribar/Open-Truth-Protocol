@@ -12,7 +12,7 @@ Ship a Phase 1-complete OTP core that is contract-aligned, testable, and easy fo
 - No hidden behavior: degraded mode, timeouts, and retries are explicit in outputs and docs.
 
 ## Current Gap Snapshot (as of 2026-04-17)
-1. Temporal workflow path is scaffolded but not yet wired to real dispatch/collection logic.
+1. Temporal workflow path is wired for dispatch/collection, but deeper integration test coverage is still expanding.
 2. Ledger commitment agent path is not implemented in runtime flow.
 3. Agent analyzers are deterministic placeholders rather than production signal pipelines.
 4. Routing/scoring contracts mostly exist, but edge-case behavior needs stronger test coverage.

@@ -21,6 +21,10 @@ def _make_service() -> OrchestratorService:
     return OrchestratorService(producer=cast(Any, _FakeProducer()))
 
 
+def _producer_from_service(service: OrchestratorService) -> _FakeProducer:
+    return cast(_FakeProducer, service._producer)
+
+
 @pytest.mark.asyncio
 async def test_get_consensus_returns_none_until_job_complete() -> None:
     service = _make_service()
@@ -43,6 +47,37 @@ async def test_get_consensus_returns_none_until_job_complete() -> None:
     )
 
     assert service.get_consensus(job.task_id) is None
+
+
+@pytest.mark.asyncio
+async def test_pending_job_is_not_published_until_dispatched() -> None:
+    service = _make_service()
+    producer = _producer_from_service(service)
+
+    job = service.create_pending_job(
+        media_type="image/jpeg",
+        media_size_bytes=1024,
+        blob_uri="s3://otp-intake/pending.jpg",
+        source_url="https://example.com",
+        submitted_by="test",
+    )
+
+    assert producer.messages == []
+
+    dispatched = await service.dispatch_pending_job(job.task_id)
+
+    assert dispatched is True
+    assert len(producer.messages) == 1
+    assert producer.messages[0][2] == job.task_id
+
+
+@pytest.mark.asyncio
+async def test_dispatch_pending_job_returns_false_for_unknown_task() -> None:
+    service = _make_service()
+
+    dispatched = await service.dispatch_pending_job("missing-task")
+
+    assert dispatched is False
 
 
 @pytest.mark.asyncio

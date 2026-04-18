@@ -81,9 +81,11 @@ After startup:
 ## Runtime Flow
 
 1. Submit a job with `POST /ingest`.
-2. Orchestrator publishes the job to `otp.jobs.<task_id>`.
-3. Agent workers consume jobs, run analysis, and publish to `otp.results.<task_id>`.
-4. Orchestrator background consumer aggregates reports and serves consensus at `GET /results/{task_id}`.
+2. Orchestrator starts a Temporal verification workflow for the task.
+3. Workflow dispatch activity publishes the job to `otp.jobs.<task_id>`.
+4. Agent workers consume jobs, run analysis, and publish to `otp.results.<task_id>`.
+5. Orchestrator background consumer aggregates reports, and workflow collect activity finalizes on completion or timeout.
+6. Consensus is served at `GET /results/{task_id}`.
 
 `POST /internal/results` remains available for local testing and fixture injection.
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import Any
+from typing import Any, cast
 
 from temporalio import workflow
 
@@ -14,14 +14,12 @@ class VerificationWorkflow:
     @workflow.run
     async def run(
         self,
-        *,
         task_id: str,
-        active_agents: list[str],
         hard_timeout_seconds: int,
     ) -> dict[str, Any]:
         await workflow.execute_activity(
             dispatch_job,
-            args=[task_id, active_agents],
+            args=[task_id],
             start_to_close_timeout=timedelta(seconds=10),
         )
 
@@ -30,4 +28,4 @@ class VerificationWorkflow:
             args=[task_id, hard_timeout_seconds],
             start_to_close_timeout=timedelta(seconds=hard_timeout_seconds),
         )
-        return result
+        return cast(dict[str, Any], result)

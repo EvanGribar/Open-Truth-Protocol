@@ -19,6 +19,9 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - GitHub issue templates for bug, feature, and security reporting flows
 - Pull request template with AGENTS.md contract and benchmark checklist
 - Phase 1 backlog workflow document at `.github/project/BACKLOG.md`
+- Temporal workflow worker bootstrap in orchestrator service startup
+- Orchestrator Temporal activities that dispatch pending jobs and collect reports until completion/timeout
+- Unit test coverage for orchestrator activity behavior and pending-job dispatch flow
 
 ### Changed
 
@@ -30,6 +33,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Expanded contributor workflow documentation for issue-driven development
 - Expanded backlog workflow and issue lifecycle requirements for AGENTS-referenced implementation tasks
 - Expanded CODEOWNERS coverage for agents, tests, docs, and CI paths
+- Ingest runtime path now starts Temporal workflow execution before job dispatch to Kafka
 
 ### Removed
 

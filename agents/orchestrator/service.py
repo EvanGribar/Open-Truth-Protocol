@@ -56,6 +56,29 @@ class OrchestratorService:
                 synthetic["task_id"] = task_id
                 reports[agent] = synthetic
 
+    @staticmethod
+    def _build_job_payload(
+        *,
+        task_id: str,
+        media_type: str,
+        media_size_bytes: int,
+        blob_uri: str,
+        source_url: str | None,
+        submitted_by: str | None,
+    ) -> JobPayload:
+        active_agents = list(get_active_agents(media_type))
+        sha256_hash = hashlib.sha256(blob_uri.encode("utf-8")).hexdigest()
+        return JobPayload(
+            task_id=task_id,
+            timestamp_utc=datetime.now(tz=UTC),
+            media_type=media_type,
+            media_size_bytes=media_size_bytes,
+            sha256_hash=sha256_hash,
+            blob_uri=blob_uri,
+            active_agents=active_agents,
+            client_metadata=ClientMetadata(source_url=source_url, submitted_by=submitted_by),
+        )
+
     def has_task(self, task_id: str) -> bool:
         return task_id in self._jobs
 
@@ -88,24 +111,46 @@ class OrchestratorService:
         source_url: str | None,
         submitted_by: str | None,
     ) -> JobPayload:
-        task_id = str(uuid4())
-        active_agents = list(get_active_agents(media_type))
-        sha256_hash = hashlib.sha256(blob_uri.encode("utf-8")).hexdigest()
-        job = JobPayload(
-            task_id=task_id,
-            timestamp_utc=datetime.now(tz=UTC),
+        job = self.create_pending_job(
             media_type=media_type,
             media_size_bytes=media_size_bytes,
-            sha256_hash=sha256_hash,
             blob_uri=blob_uri,
-            active_agents=active_agents,
-            client_metadata=ClientMetadata(source_url=source_url, submitted_by=submitted_by),
+            source_url=source_url,
+            submitted_by=submitted_by,
         )
-        topic = f"{JOB_TOPIC_PREFIX}.{task_id}"
-        await self._producer.send(topic=topic, payload=job.model_dump(mode="json"), key=task_id)
+        await self.dispatch_pending_job(job.task_id)
+        return job
+
+    def create_pending_job(
+        self,
+        *,
+        media_type: str,
+        media_size_bytes: int,
+        blob_uri: str,
+        source_url: str | None,
+        submitted_by: str | None,
+    ) -> JobPayload:
+        task_id = str(uuid4())
+        job = self._build_job_payload(
+            task_id=task_id,
+            media_type=media_type,
+            media_size_bytes=media_size_bytes,
+            blob_uri=blob_uri,
+            source_url=source_url,
+            submitted_by=submitted_by,
+        )
         self._jobs[task_id] = job
         self._reports[task_id] = {}
         return job
+
+    async def dispatch_pending_job(self, task_id: str) -> bool:
+        job = self._jobs.get(task_id)
+        if job is None:
+            return False
+
+        topic = f"{JOB_TOPIC_PREFIX}.{task_id}"
+        await self._producer.send(topic=topic, payload=job.model_dump(mode="json"), key=task_id)
+        return True
 
     def add_result(self, result: ResultEnvelope) -> None:
         job = self._jobs.get(result.task_id)
@@ -148,6 +193,16 @@ class OrchestratorService:
             agent_reports=reports,
             ledger_receipt=None,
         )
+
+    def get_reports(self, task_id: str) -> dict[str, dict[str, Any]]:
+        reports = self._reports.get(task_id)
+        if reports is None:
+            return {}
+        return dict(reports)
+
+    def finalize_missing_timeouts(self, task_id: str) -> None:
+        if task_id in self._jobs:
+            self._finalize_with_missing_timeouts(task_id)
 
     @staticmethod
     def workflow_timeout_for_media_type(media_type: str) -> int:
