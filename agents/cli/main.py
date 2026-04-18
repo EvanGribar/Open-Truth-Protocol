@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 
 import httpx
-from pydantic import BaseModel
 
 from shared.env import get_settings
 from shared.observability import configure_logging, get_logger
