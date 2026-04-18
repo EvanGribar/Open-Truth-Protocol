@@ -10,7 +10,7 @@
 
 - **🎯 Want to contribute?** → Start at [Contribution Workflow](#contribution-workflow)
 - **🔧 Setting up locally?** → Jump to [Local Development](#local-development)
-- **📋 Need a specific task?** → See [GitHub Issues Roadmap](./GITHUB_ISSUES_ROADMAP.md)
+- **📋 Need a specific task?** → See [GitHub Issues](https://github.com/EvanGribar/Open-Truth-Protocol/issues)
 - **📖 Understanding the architecture?** → Read [AGENTS.md](../AGENTS.md)
 
 ---
@@ -39,7 +39,7 @@
 
 ### Step 1: Pick an Issue
 
-Go to [GitHub Issues Roadmap](./GITHUB_ISSUES_ROADMAP.md) or GitHub Issues tab and select one:
+Go to the [GitHub Issues](https://github.com/EvanGribar/Open-Truth-Protocol/issues) tab and select one:
 
 **Recommended Starting Issues** (ordered by priority):
 1. `feat(orchestrator): enforce per-agent hard timeouts` — Already ~90% done
