@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 from agents.orchestrator.service import OrchestratorService
+from shared.constants import RESULT_TOPIC_PREFIX
 from shared.env import get_settings
-from shared.kafka_client import KafkaProducerClient
+from shared.kafka_client import KafkaConsumerClient, KafkaProducerClient
 from shared.observability import configure_logging, get_logger
 from shared.schemas import ResultEnvelope
 
@@ -30,21 +32,47 @@ class IngestResponse(BaseModel):
     task_id: str
 
 
+async def consume_results(consumer: KafkaConsumerClient, service: OrchestratorService) -> None:
+    while True:
+        try:
+            record = await consumer.getone()
+            result = ResultEnvelope.model_validate(record.value)
+            service.add_result(result)
+            await consumer.commit()
+        except Exception as exc:
+            logger.exception("orchestrator_result_consume_error", error=str(exc))
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     configure_logging(settings.otp_log_level)
 
     producer = KafkaProducerClient(settings)
+    result_consumer = KafkaConsumerClient(
+        settings,
+        topic_pattern=f"{RESULT_TOPIC_PREFIX}.*",
+        group_id="cg-orchestrator-results",
+    )
+
     await producer.start()
+    await result_consumer.start()
 
     app.state.producer = producer
     app.state.service = OrchestratorService(producer=producer)
+    app.state.result_consumer = result_consumer
+    app.state.result_consumer_task = asyncio.create_task(
+        consume_results(result_consumer, app.state.service)
+    )
 
     logger.info("orchestrator_started")
     try:
         yield
     finally:
+        app.state.result_consumer_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await app.state.result_consumer_task
+        await result_consumer.stop()
         await producer.stop()
         logger.info("orchestrator_stopped")
 

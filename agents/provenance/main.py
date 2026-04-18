@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+import asyncio
 import time
+from typing import cast
+
+from redis.asyncio import Redis
 
 from agents.provenance.analyzer import analyze
+from shared.constants import JOB_TOPIC_PREFIX, RESULT_TOPIC_PREFIX
+from shared.dedupe import DedupeStore
+from shared.env import get_settings
+from shared.kafka_client import KafkaConsumerClient, KafkaProducerClient
 from shared.observability import errors_total, get_logger, job_duration_seconds, jobs_total
 from shared.routing import should_process
 from shared.schemas import ErrorPayload, JobPayload, ResultEnvelope, Status
@@ -59,3 +67,59 @@ def process_job(job_dict: dict[str, object]) -> ResultEnvelope:
                 retryable=True,
             ),
         )
+
+
+async def run_worker() -> None:
+    settings = get_settings()
+    producer = KafkaProducerClient(settings)
+    consumer = KafkaConsumerClient(
+        settings,
+        topic_pattern=f"{JOB_TOPIC_PREFIX}.*",
+        group_id="cg-provenance",
+    )
+    redis_client = Redis.from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
+    dedupe_store = DedupeStore(redis_client)
+
+    await producer.start()
+    await consumer.start()
+    logger.info("provenance_worker_started")
+
+    try:
+        while True:
+            try:
+                record = await consumer.getone()
+                job_dict = cast(dict[str, object], record.value)
+                task_id = str(job_dict.get("task_id", ""))
+
+                if not task_id:
+                    logger.warning("provenance_invalid_job_missing_task_id")
+                    errors_total.labels(agent="provenance", code="INVALID_JOB_PAYLOAD").inc()
+                    await consumer.commit()
+                    continue
+
+                if await dedupe_store.seen(task_id, "provenance"):
+                    jobs_total.labels(agent="provenance", status="duplicate").inc()
+                    logger.info("provenance_duplicate_job_skipped", task_id=task_id)
+                    await consumer.commit()
+                    continue
+
+                result = process_job(job_dict)
+                await producer.send(
+                    topic=f"{RESULT_TOPIC_PREFIX}.{result.task_id}",
+                    payload=result.model_dump(mode="json"),
+                    key=result.task_id,
+                )
+                await dedupe_store.mark_seen(result.task_id, "provenance")
+                await consumer.commit()
+            except Exception as exc:
+                errors_total.labels(agent="provenance", code="WORKER_LOOP_ERROR").inc()
+                logger.exception("provenance_worker_loop_error", error=str(exc))
+    finally:
+        await consumer.stop()
+        await producer.stop()
+        await redis_client.aclose()
+        logger.info("provenance_worker_stopped")
+
+
+if __name__ == "__main__":
+    asyncio.run(run_worker())
