@@ -1,24 +1,31 @@
 # Pull request label rules for actions/labeler.
 # Label naming follows enterprise-style prefixes:
-# - area: for ownership/surface
-# - type: for nature of change
+# - area/ for ownership/surface
+# - type/ for nature of change
 
-'area: agents':
+'area/agents':
   - changed-files:
       - any-glob-to-any-file:
-          - 'agents/**'
+          - 'agents/heuristics/**'
+          - 'agents/provenance/**'
+          - 'agents/web_consensus/**'
 
-'area: shared':
+'area/orchestrator':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'agents/orchestrator/**'
+
+'area/shared':
   - changed-files:
       - any-glob-to-any-file:
           - 'shared/**'
 
-'area: tests':
+'area/tests':
   - changed-files:
       - any-glob-to-any-file:
           - 'tests/**'
 
-'area: docs':
+'area/docs':
   - changed-files:
       - any-glob-to-any-file:
           - 'README.md'
@@ -29,42 +36,41 @@
           - 'CODE_OF_CONDUCT.md'
           - 'docs/**'
 
-'area: infra':
+'area/infra':
   - changed-files:
       - any-glob-to-any-file:
           - 'docker/**'
           - 'docker-compose.yml'
           - 'config/**'
 
-'area: ci':
+'area/ci-cd':
   - changed-files:
       - any-glob-to-any-file:
           - '.github/workflows/**'
           - '.pre-commit-config.yaml'
 
-'type: feature':
+'type/feat':
   - head-branch:
       - '^feat[/-]'
       - '^feature[/-]'
 
-'type: bugfix':
+'type/bug':
   - head-branch:
       - '^fix[/-]'
       - '^bugfix[/-]'
       - '^hotfix[/-]'
 
-'type: refactor':
+'type/refactor':
   - head-branch:
       - '^refactor[/-]'
-      - '^chore/refactor[/-]'
 
-'type: chore':
+'type/chore':
   - head-branch:
       - '^chore[/-]'
       - '^build[/-]'
       - '^ci[/-]'
 
-'type: docs':
+'type/docs':
   - head-branch:
       - '^docs[/-]'
   - changed-files:

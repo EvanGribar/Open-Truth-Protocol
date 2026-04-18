@@ -11,6 +11,7 @@ htmlcov/
 *.pyd
 .env
 .env.local
+.vscode/mcp.json
 .agents/
 .DS_Store
 *.log
