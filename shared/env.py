@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 
     otp_env: str = Field(default="development", alias="OTP_ENV")
     otp_log_level: str = Field(default="INFO", alias="OTP_LOG_LEVEL")
-    otp_api_host: str = Field(default="0.0.0.0", alias="OTP_API_HOST")
+    otp_api_host: str = Field(default="127.0.0.1", alias="OTP_API_HOST")
     otp_api_port: int = Field(default=8000, alias="OTP_API_PORT")
 
 
