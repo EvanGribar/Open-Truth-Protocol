@@ -44,29 +44,29 @@ area: ci:
 
 type: feature:
   - head-branch:
-      - "^feat(/|-)"
-      - "^feature(/|-)"
+      - "^feat[/-]"
+      - "^feature[/-]"
 
 type: bugfix:
   - head-branch:
-      - "^fix(/|-)"
-      - "^bugfix(/|-)"
-      - "^hotfix(/|-)"
+      - "^fix[/-]"
+      - "^bugfix[/-]"
+      - "^hotfix[/-]"
 
 type: refactor:
   - head-branch:
-      - "^refactor(/|-)"
-      - "^chore/refactor(/|-)"
+      - "^refactor[/-]"
+      - "^chore/refactor[/-]"
 
 type: chore:
   - head-branch:
-      - "^chore(/|-)"
-      - "^build(/|-)"
-      - "^ci(/|-)"
+      - "^chore[/-]"
+      - "^build[/-]"
+      - "^ci[/-]"
 
 type: docs:
   - head-branch:
-      - "^docs(/|-)"
+      - "^docs[/-]"
   - changed-files:
       - any-glob-to-any-file:
           - "README.md"
