@@ -27,6 +27,7 @@ class OrchestratorService:
         self._producer = producer
         self._reports: dict[str, dict[str, dict[str, Any]]] = {}
         self._jobs: dict[str, JobPayload] = {}
+        self._consensus_cache: dict[str, TruthConsensus] = {}
 
     @staticmethod
     def _timeout_error_payload(agent: str) -> dict[str, Any]:
@@ -230,6 +231,9 @@ class OrchestratorService:
             TruthConsensus with final score, verdict, and agent reports if complete.
             None if task does not exist, is not complete, or has no reports.
         """
+        if task_id in self._consensus_cache:
+            return self._consensus_cache[task_id]
+
         job = self._jobs.get(task_id)
         if not job:
             logger.debug("get_consensus_task_not_found", task_id=task_id)
@@ -271,8 +275,10 @@ class OrchestratorService:
             verdict=verdict,
             degraded_mode=degraded_mode,
             agent_reports=reports,
-            ledger_receipt=None,
+            ledger_receipt=None,  # Will be populated by commit_to_ledger activity
         )
+
+        self._consensus_cache[task_id] = consensus
 
         logger.info(
             "consensus_built",
@@ -286,6 +292,17 @@ class OrchestratorService:
         )
 
         return consensus
+
+    def update_ledger_receipt(self, task_id: str, receipt: Any) -> None:
+        """Update the ledger receipt for a consensus record.
+
+        This is usually called by a post-processing activity.
+        """
+        if task_id in self._consensus_cache:
+            self._consensus_cache[task_id].ledger_receipt = receipt
+            logger.info("ledger_receipt_updated", task_id=task_id)
+        else:
+            logger.warning("ledger_receipt_update_failed_task_not_in_cache", task_id=task_id)
 
     def get_reports(self, task_id: str) -> dict[str, dict[str, Any]]:
         reports = self._reports.get(task_id)

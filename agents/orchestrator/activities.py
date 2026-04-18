@@ -8,8 +8,10 @@ from typing import Any
 from temporalio import activity
 
 from agents.orchestrator.service import OrchestratorService
+from shared.ledger import LedgerService
 
 _service: OrchestratorService | None = None
+_ledger_service: LedgerService | None = None
 
 
 def set_orchestrator_service(service: OrchestratorService | None) -> None:
@@ -17,10 +19,21 @@ def set_orchestrator_service(service: OrchestratorService | None) -> None:
     _service = service
 
 
+def set_ledger_service(service: LedgerService | None) -> None:
+    global _ledger_service
+    _ledger_service = service
+
+
 def _require_service() -> OrchestratorService:
     if _service is None:
         raise RuntimeError("orchestrator service is not configured for activities")
     return _service
+
+
+def _require_ledger_service() -> LedgerService:
+    if _ledger_service is None:
+        raise RuntimeError("ledger service is not configured for activities")
+    return _ledger_service
 
 
 @activity.defn
@@ -58,3 +71,22 @@ async def collect_results(task_id: str, timeout_seconds: int) -> dict[str, Any]:
         "collected_at": datetime.now(tz=UTC).isoformat(),
         "reports": reports,
     }
+
+
+@activity.defn
+async def commit_to_ledger(task_id: str) -> dict[str, Any] | None:
+    service = _require_service()
+    ledger = _require_ledger_service()
+
+    consensus = service.get_consensus(task_id)
+    if consensus is None:
+        activity.logger.error("commit_to_ledger_failed_no_consensus", task_id=task_id)
+        return None
+
+    receipt = await ledger.commit_consensus(consensus)
+    if receipt:
+        service.update_ledger_receipt(task_id, receipt)
+        activity.logger.info("commit_to_ledger_success", task_id=task_id, tx_hash=receipt.transaction_hash)
+        return receipt.model_dump(mode="json")
+
+    return None
