@@ -6,11 +6,16 @@ ENV PYTHONUNBUFFERED=1
 RUN groupadd --system otp && useradd --system --gid otp otp
 WORKDIR /app
 
+# Install dependencies from requirements.txt with hashes
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt
+
 COPY pyproject.toml README.md /app/
 COPY agents /app/agents
 COPY shared /app/shared
 
-RUN pip install --no-cache-dir .
+# Install the local package without dependencies (already installed)
+RUN pip install --no-cache-dir --no-deps .
 
 USER otp
 CMD ["python", "-m", "agents.provenance.main"]
