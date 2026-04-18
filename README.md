@@ -22,6 +22,16 @@ This repository currently includes:
 - Strict linting, format checking, type checking, and test coverage gates
 - CI workflow for quality enforcement
 
+## Roadmap
+
+The public execution order is tracked in `docs/IMPLEMENTATION_PLAN.md` and the Phase 1 backlog in `.github/project/BACKLOG.md`.
+
+1. Complete the orchestrator contract: Temporal worker bootstrap, dispatch/collect flow, and explicit timeout handling.
+2. Harden shared contracts: routing matrix alignment, scorer boundary coverage, and confidence discount behavior.
+3. Finish pragmatic v1 agent paths: text provenance, text heuristics, and web-consensus cache/source checks.
+4. Add the ledger commitment integration stub and failure-safe return path.
+5. Keep release hygiene tight: docs, changelog, security triage, and issue/PR traceability.
+
 ## Quick Start
 
 1. Install dependencies:
@@ -58,6 +68,7 @@ make check
 4. Link the issue and ensure all checks pass before merge.
 
 Use the implementation execution plan in `docs/IMPLEMENTATION_PLAN.md` for AGENTS-aligned sequencing and definition-of-done criteria.
+Use GitHub Issues as the backlog source of truth and keep roadmap, backlog, and release notes synchronized with each merged PR.
 
 ## Local Infrastructure
 

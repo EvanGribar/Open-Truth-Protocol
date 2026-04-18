@@ -47,6 +47,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Enforced pytest coverage threshold (`--cov-fail-under=45`)
 - Expanded contributor workflow documentation for issue-driven development
 - Expanded backlog workflow and issue lifecycle requirements for AGENTS-referenced implementation tasks
+- Added a public roadmap snapshot to `README.md` that points to the implementation plan and Phase 1 backlog
 - Expanded CODEOWNERS coverage for agents, tests, docs, and CI paths
 - Ingest runtime path now starts Temporal workflow execution before job dispatch to Kafka
 
