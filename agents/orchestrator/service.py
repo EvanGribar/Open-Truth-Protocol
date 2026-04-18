@@ -245,17 +245,18 @@ class OrchestratorService:
             return None
 
         final_score = compute_truth_score(job.media_type, reports)
-        verdict = map_score_to_verdict(final_score, reports)
 
-        # Check if we're in degraded mode (heuristics agent not present)
-        degraded_mode = "heuristics" not in job.active_agents
-
-        # Check for multiple agent failures
+        # Check for multiple agent failures (per AGENTS §8)
         failure_count = sum(
             1
             for report in reports.values()
             if report.get("status") in {Status.ERROR.value, Status.TIMEOUT.value}
         )
+
+        # Degraded mode: 2+ agents failed/timed out OR heuristics agent not active (per AGENTS §8)
+        degraded_mode = failure_count >= 2 or "heuristics" not in job.active_agents
+
+        verdict = map_score_to_verdict(final_score, reports)
 
         now = datetime.now(tz=UTC)
         processing_duration_ms = int((now - job.timestamp_utc).total_seconds() * 1000)
