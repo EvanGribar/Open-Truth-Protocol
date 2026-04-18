@@ -1,5 +1,8 @@
 # Open Truth Protocol
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/EvanGribar/Open-Truth-Protocol/badge)](https://scorecard.dev/viewer/?uri=github.com/EvanGribar/Open-Truth-Protocol)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/9944/badge)](https://bestpractices.coreinfrastructure.org/projects/9944)
+
 ## What is OTP?
 
 **OTP is a decentralized, open-source swarm of AI agents that collectively verify the authenticity of digital media.**
@@ -42,12 +45,12 @@ This repository is maintained for public open-source collaboration:
 
 ## Current Implementation Status
 
-**Phase 1 Tracks**: 1-2 Complete ✅ | Tracks 3-5 Ready to Start
+**Phase 1 Tracks**: 1-4 Complete ✅ | Track 5 Ready to Finalize
 
 - ✅ **Track 1 (Orchestrator)**: Per-agent timeouts, degraded-mode logic, edge-case coverage
 - ✅ **Track 2 (Shared)**: Routing matrix, scoring verdict boundaries, confidence discounting
-- ⏭️ **Track 3 (Agents)**: Real signal pipelines (text heuristics, text provenance, web cache)
-- ⏭️ **Track 4 (Ledger)**: Commitment service and smart contract
+- ✅ **Track 3 (CLI/Benchmark)**: `otp-verify` CLI tool and `otp-benchmark` evaluation suite
+- ✅ **Track 4 (Ledger)**: `LedgerService` interface and no-op commitment integration
 - ⏭️ **Track 5 (Release)**: Documentation finalization and Phase 1 completion
 
 ## How to Contribute

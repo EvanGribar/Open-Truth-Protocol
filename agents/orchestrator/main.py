@@ -10,12 +10,19 @@ from pydantic import BaseModel, ConfigDict, Field
 from temporalio.client import Client
 from temporalio.worker import Worker
 
-from agents.orchestrator.activities import collect_results, dispatch_job, set_orchestrator_service
+from agents.orchestrator.activities import (
+    collect_results,
+    commit_to_ledger,
+    dispatch_job,
+    set_ledger_service,
+    set_orchestrator_service,
+)
 from agents.orchestrator.service import OrchestratorService
 from agents.orchestrator.workflow import VerificationWorkflow
 from shared.constants import RESULT_TOPIC_PREFIX
 from shared.env import get_settings
 from shared.kafka_client import KafkaConsumerClient, KafkaProducerClient
+from shared.ledger import NoOpLedgerService
 from shared.observability import configure_logging, get_logger
 from shared.schemas import ResultEnvelope
 
@@ -63,7 +70,10 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     await result_consumer.start()
 
     service = OrchestratorService(producer=producer)
+    ledger_service = NoOpLedgerService()  # Use NoOp for Phase 1
+
     set_orchestrator_service(service)
+    set_ledger_service(ledger_service)
 
     temporal_client = await Client.connect(
         settings.temporal_host,
@@ -73,7 +83,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         temporal_client,
         task_queue=settings.temporal_task_queue,
         workflows=[VerificationWorkflow],
-        activities=[dispatch_job, collect_results],
+        activities=[dispatch_job, collect_results, commit_to_ledger],
     )
 
     app.state.producer = producer
@@ -97,6 +107,7 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
             await app.state.result_consumer_task
 
         set_orchestrator_service(None)
+        set_ledger_service(None)
         await result_consumer.stop()
         await producer.stop()
         logger.info("orchestrator_stopped")

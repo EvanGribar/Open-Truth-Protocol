@@ -6,7 +6,7 @@ from typing import Any, cast
 from temporalio import workflow
 
 with workflow.unsafe.imports_passed_through():
-    from agents.orchestrator.activities import collect_results, dispatch_job
+    from agents.orchestrator.activities import collect_results, commit_to_ledger, dispatch_job
 
 
 @workflow.defn
@@ -28,4 +28,14 @@ class VerificationWorkflow:
             args=[task_id, hard_timeout_seconds],
             start_to_close_timeout=timedelta(seconds=hard_timeout_seconds),
         )
+
+        # Post-processing: Commit to ledger if results were collected
+        # Note: We don't fail the workflow if ledger commitment fails in Phase 1
+        await workflow.execute_activity(
+            commit_to_ledger,
+            args=[task_id],
+            start_to_close_timeout=timedelta(seconds=60),
+            retry_policy=workflow.RetryPolicy(maximum_attempts=3),
+        )
+
         return cast(dict[str, Any], result)
