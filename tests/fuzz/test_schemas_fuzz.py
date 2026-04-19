@@ -6,15 +6,26 @@ import json
 import sys
 from typing import Any
 
-import atheris  # type: ignore[import-untyped]
+try:
+    import atheris  # type: ignore[import-untyped]
+except ImportError:
+    atheris = None
 
-with atheris.instrument_imports():
+if atheris is not None:
+    with atheris.instrument_imports():
+        from pydantic import ValidationError
+
+        from shared.schemas import ResultEnvelope
+else:
     from pydantic import ValidationError
 
     from shared.schemas import ResultEnvelope
 
 
 def TestOneInput(data: bytes) -> None:
+    if atheris is None:
+        return
+
     fdp = atheris.FuzzedDataProvider(data)
     try:
         # Try to parse fuzzed string as JSON and validate
@@ -31,6 +42,10 @@ def TestOneInput(data: bytes) -> None:
 
 
 def main() -> None:
+    if atheris is None:
+        print("atheris is not installed; skipping fuzz execution")
+        return
+
     atheris.Setup(sys.argv, TestOneInput)
     atheris.Fuzz()
 

@@ -589,7 +589,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiokafka", specifier = ">=0.11.0,<0.12.0" },
+    { name = "aiokafka", specifier = ">=0.11.0,<0.14.0" },
     { name = "atheris", marker = "extra == 'dev'", specifier = ">=2.3.0" },
     { name = "boto3", specifier = ">=1.35.0,<2.0.0" },
     { name = "cachetools", specifier = ">=5.5.0" },
@@ -606,7 +606,7 @@ requires-dist = [
     { name = "redis", specifier = ">=5.1.0,<6.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.7.0,<0.8.0" },
     { name = "starlette", specifier = ">=0.49.1,<1.1.0" },
-    { name = "structlog", specifier = ">=24.4.0,<25.0.0" },
+    { name = "structlog", specifier = ">=24.4.0,<26.0.0" },
     { name = "temporalio", specifier = ">=1.9.0,<2.0.0" },
     { name = "types-cachetools", specifier = ">=5.5.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34.0,<0.35.0" },
