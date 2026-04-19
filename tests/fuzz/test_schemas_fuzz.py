@@ -5,10 +5,14 @@ from __future__ import annotations
 import json
 import sys
 from typing import Any
+from unittest import SkipTest
 
-import pytest
-
-atheris = pytest.importorskip("atheris")
+try:
+    import atheris  # type: ignore[import-untyped]
+except ImportError as exc:
+    # Skip this module in pytest runs when atheris isn't installed.
+    # Avoid importing pytest directly so fuzz binaries don't require pytest at runtime.
+    raise SkipTest("atheris is required for fuzz tests") from exc
 
 with atheris.instrument_imports():
     from pydantic import ValidationError
