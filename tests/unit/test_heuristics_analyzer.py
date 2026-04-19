@@ -52,9 +52,9 @@ class TestHeuristicsTextAnalysis:
 
         # Authentic human text should have noticeably lower synthetic probability than LLM text
         # (compared to test_analyze_llm_generated_text which has >0.5)
-        assert result["synthetic_probability"] < 0.7, (
-            f"Authentic text should have lower synthetic probability, got {result['synthetic_probability']}"
-        )
+        assert (
+            result["synthetic_probability"] < 0.7
+        ), f"Authentic text should have lower synthetic probability, got {result['synthetic_probability']}"
         assert result["heuristics_score"] > 0.3
 
     def test_analyze_text_perplexity_signal_present(self) -> None:
@@ -205,6 +205,6 @@ class TestHeuristicsConfidenceIntegration:
         result = analyze(media_type="text/plain", content=obvious_llm)
 
         # Obvious LLM text should have decent confidence in the assessment
-        assert result["confidence"] >= 0.6, (
-            f"Obvious LLM text should have good confidence, got {result['confidence']}"
-        )
+        assert (
+            result["confidence"] >= 0.6
+        ), f"Obvious LLM text should have good confidence, got {result['confidence']}"

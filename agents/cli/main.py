@@ -28,7 +28,6 @@ def _resolve_local_file(file_path: str) -> tuple[str, int, str]:
 
 
 async def verify_file(file_name: str, file_size_bytes: int, media_type: str, api_url: str) -> None:
-
     # In a real CLI, we would upload to S3 first.
     # For Phase 1 MVP, we simulate or assume the file is already in S3 or provided via local path
     # if the API supports it. But AGENTS.md says "Agents... pull from S3".

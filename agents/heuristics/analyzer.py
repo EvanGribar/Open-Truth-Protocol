@@ -194,7 +194,7 @@ def _score_text_synthetic(mean_perplexity: float, burstiness: float) -> float:
     # Too low (<3) or very high (>30) suggests authentic text with outliers
     if mean_perplexity < 2.0:
         perplexity_signal = 0.2  # Too simple → authentic
-    elif 2.0 <= mean_perplexity <= 12.0:
+    elif mean_perplexity <= 12.0:
         perplexity_signal = 0.6  # Moderate → ambiguous, could be LLM
     else:
         perplexity_signal = 0.4  # Too high → authentic with rare words
