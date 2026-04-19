@@ -5,22 +5,27 @@ from __future__ import annotations
 import json
 import sys
 from typing import Any
-from unittest import SkipTest
 
 try:
     import atheris  # type: ignore[import-untyped]
-except ImportError as exc:
-    # Skip this module in pytest runs when atheris isn't installed.
-    # Avoid importing pytest directly so fuzz binaries don't require pytest at runtime.
-    raise SkipTest("atheris is required for fuzz tests") from exc
+except ImportError:
+    atheris = None
 
-with atheris.instrument_imports():
+if atheris is not None:
+    with atheris.instrument_imports():
+        from pydantic import ValidationError
+
+        from shared.schemas import ResultEnvelope
+else:
     from pydantic import ValidationError
 
     from shared.schemas import ResultEnvelope
 
 
 def TestOneInput(data: bytes) -> None:
+    if atheris is None:
+        return
+
     fdp = atheris.FuzzedDataProvider(data)
     try:
         # Try to parse fuzzed string as JSON and validate
@@ -37,6 +42,10 @@ def TestOneInput(data: bytes) -> None:
 
 
 def main() -> None:
+    if atheris is None:
+        print("atheris is not installed; skipping fuzz execution")
+        return
+
     atheris.Setup(sys.argv, TestOneInput)
     atheris.Fuzz()
 
