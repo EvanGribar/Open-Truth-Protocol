@@ -206,4 +206,3 @@ def _analyze_document_provenance(media_type: str) -> dict[str, object]:
             "confidence": 0.50,
             "document_type": media_type,
         }
-

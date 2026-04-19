@@ -136,7 +136,7 @@ def _compute_mean_perplexity(tokens: list[str]) -> float:
             entropy -= p * math.log2(p)
 
     # Perplexity = 2^H
-    perplexity = 2 ** entropy
+    perplexity = 2**entropy
 
     return round(perplexity, 2)
 
@@ -206,9 +206,7 @@ def _score_text_synthetic(mean_perplexity: float, burstiness: float) -> float:
     return round(max(0.0, min(1.0, synthetic_prob)), 4)
 
 
-def _compute_confidence(
-    mean_perplexity: float, burstiness: float, text_length: int
-) -> float:
+def _compute_confidence(mean_perplexity: float, burstiness: float, text_length: int) -> float:
     """Compute confidence in the synthetic probability assessment.
 
     Confidence increases with:
@@ -292,4 +290,3 @@ def _analyze_video() -> dict[str, object]:
         "anomalies_detected": [],
         "heuristics_score": 0.65,
     }
-

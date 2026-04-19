@@ -195,4 +195,3 @@ def _store_in_cache(cache_key: str, result: dict[str, Any], ttl_seconds: int = 8
     # cache = get_redis_client()
     # cache.setex(cache_key, ttl_seconds, json.dumps(result))
     pass
-

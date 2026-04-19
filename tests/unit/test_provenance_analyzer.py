@@ -26,7 +26,9 @@ class TestProvenanceTextAnalysis:
         from agents.provenance.analyzer import analyze
 
         # Placeholder for actual DOCX test (Phase 2)
-        result = analyze(media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        result = analyze(
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
 
         assert "provenance_score" in result
 
