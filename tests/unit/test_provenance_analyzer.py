@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-import io
-
-import pytest
-
 
 class TestProvenanceTextAnalysis:
     """Test provenance analysis for text media (AGENTS §5.2 - Document Inspection)."""
@@ -140,7 +136,7 @@ class TestProvenanceConfidence:
         result = analyze(media_type="text/plain", content="")
 
         assert "confidence" in result
-        assert isinstance(result["confidence"], (int, float))
+        assert isinstance(result["confidence"], int | float)
         assert 0 <= result["confidence"] <= 1
 
     def test_confidence_reflects_metadata_availability(self) -> None:

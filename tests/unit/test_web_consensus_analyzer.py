@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 
 class TestWebConsensusTextAnalysis:
     """Test web consensus analysis for text media (AGENTS §5.4)."""
@@ -76,9 +74,6 @@ class TestWebConsensusCache:
         """Test that caching mechanism works (AGENTS §5.4)."""
         from agents.web_consensus.analyzer import analyze
 
-        # First analysis
-        result1 = analyze(media_type="text/plain", content="Cache test content")
-
         # Second analysis of same content
         result2 = analyze(media_type="text/plain", content="Cache test content")
 
@@ -150,7 +145,7 @@ class TestWebConsensusConfidence:
         result = analyze(media_type="text/plain", content="Test")
 
         assert "confidence" in result
-        assert isinstance(result["confidence"], (int, float))
+        assert isinstance(result["confidence"], int | float)
         assert 0 <= result["confidence"] <= 1
 
     def test_confidence_reflects_data_availability(self) -> None:

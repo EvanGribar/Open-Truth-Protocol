@@ -65,7 +65,7 @@ class TestHeuristicsTextAnalysis:
 
         assert "signals" in result
         assert "mean_perplexity" in result["signals"]
-        assert isinstance(result["signals"]["mean_perplexity"], (int, float))
+        assert isinstance(result["signals"]["mean_perplexity"], int | float)
         assert result["signals"]["mean_perplexity"] > 0
 
     def test_analyze_text_burstiness_signal_present(self) -> None:
@@ -76,7 +76,7 @@ class TestHeuristicsTextAnalysis:
 
         assert "signals" in result
         assert "burstiness" in result["signals"]
-        assert isinstance(result["signals"]["burstiness"], (int, float))
+        assert isinstance(result["signals"]["burstiness"], int | float)
         assert 0 <= result["signals"]["burstiness"] <= 1
 
     def test_analyze_short_text(self) -> None:
@@ -187,7 +187,7 @@ class TestHeuristicsConfidenceIntegration:
         """Test that confidence is always numeric in [0, 1]."""
         result = analyze(media_type="text/plain", content="Test content")
 
-        assert isinstance(result["confidence"], (int, float))
+        assert isinstance(result["confidence"], int | float)
         assert 0 <= result["confidence"] <= 1
 
     def test_confidence_increases_with_signal_strength(self) -> None:

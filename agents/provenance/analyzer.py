@@ -6,8 +6,6 @@ document metadata inspection.
 
 from __future__ import annotations
 
-from typing import Any
-
 
 def analyze(media_type: str, content: str = "") -> dict[str, object]:
     """Analyze media provenance per AGENTS §5.2.
