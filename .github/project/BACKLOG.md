@@ -15,9 +15,9 @@ Detailed sequencing and track-level exit criteria live in `docs/IMPLEMENTATION_P
 
 ## Child Issue Buckets
 1. Orchestrator
-- Local-first task dispatch and collection via Redis
-- Timeout and partial-result handling logic
-- Local management of media and results
+- Temporal workflow dispatch and collection
+- Timeout and partial-result handling
+- Ingest/result API behavior
 
 2. Routing and Scoring Contracts
 - Media routing matrix alignment
@@ -65,8 +65,8 @@ Create these first to start implementation immediately with small, reviewable sl
 
 1. `feat(orchestrator): emit degraded_mode in TruthConsensus`
 2. `test(orchestrator): add degraded-mode and timeout edge-case coverage`
-3. `feat(orchestrator): implement local async dispatch and result collection`
-4. `feat(orchestrator): enforce per-agent hard timeout in local execution`
+3. `feat(orchestrator): wire Temporal workflow client and worker bootstrap`
+4. `feat(orchestrator): enforce per-agent hard timeout in workflow execution`
 5. `feat(shared): align routing matrix behavior with AGENTS.md section 3.5`
 6. `feat(provenance): implement document metadata extraction for text/*`
 7. `feat(heuristics): replace mock text heuristic path with real signal pipeline`

@@ -93,7 +93,7 @@ uv sync --extra dev
 2. Start local dependencies:
 
 ```bash
-docker compose -f docker/docker-compose.infra.yml up -d redis
+docker compose up -d
 ```
 
 3. Run checks:
