@@ -13,6 +13,7 @@ from shared.schemas import (
     ClientMetadata,
     ErrorPayload,
     JobPayload,
+    LedgerReceipt,
     ResultEnvelope,
     Status,
     TruthConsensus,
@@ -27,6 +28,7 @@ class OrchestratorService:
         self._producer = producer
         self._reports: dict[str, dict[str, dict[str, Any]]] = {}
         self._jobs: dict[str, JobPayload] = {}
+        self._ledger_receipts: dict[str, LedgerReceipt] = {}
 
     @staticmethod
     def _timeout_error_payload(agent: str) -> dict[str, Any]:
@@ -271,7 +273,7 @@ class OrchestratorService:
             verdict=verdict,
             degraded_mode=degraded_mode,
             agent_reports=reports,
-            ledger_receipt=None,
+            ledger_receipt=self._ledger_receipts.get(task_id),
         )
 
         logger.info(
@@ -296,6 +298,10 @@ class OrchestratorService:
     def finalize_missing_timeouts(self, task_id: str) -> None:
         if task_id in self._jobs:
             self._finalize_with_missing_timeouts(task_id)
+
+    def update_ledger_receipt(self, task_id: str, receipt: LedgerReceipt) -> None:
+        if task_id in self._jobs:
+            self._ledger_receipts[task_id] = receipt
 
     @staticmethod
     def workflow_timeout_for_media_type(media_type: str) -> int:

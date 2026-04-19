@@ -45,7 +45,7 @@ def process_job(job_dict: dict[str, object]) -> ResultEnvelope:
                 error=None,
             )
 
-        payload = analyze(job)
+        payload = analyze(job.media_type)
         duration_ms = int((time.perf_counter() - started_at) * 1000)
         jobs_total.labels(agent="web_consensus", status="success").inc()
         job_duration_seconds.labels(agent="web_consensus").observe(duration_ms / 1000)

@@ -10,7 +10,7 @@ import hashlib
 from typing import Any
 
 
-def analyze(media_type: str, content: str = "") -> dict[str, object]:
+def analyze(media_type: str, content: str = "") -> dict[str, Any]:
     """Analyze media consensus via web lookups per AGENTS §5.4.
 
     Args:

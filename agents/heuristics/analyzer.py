@@ -7,9 +7,10 @@ PRNU extraction, and statistical signal detection.
 from __future__ import annotations
 
 import math
+from typing import Any
 
 
-def analyze(media_type: str, content: str = "") -> dict[str, object]:
+def analyze(media_type: str, content: str = "") -> dict[str, Any]:
     """Analyze media for synthetic indicators per AGENTS §5.3.
 
     Args:
