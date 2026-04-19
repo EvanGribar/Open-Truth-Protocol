@@ -36,6 +36,10 @@ class _FakeActivityService:
             }
         }
 
+    async def aggregate_results(self, task_id: str, timeout_seconds: int) -> dict[str, dict[str, object]]:
+        # Return same structure as get_reports for this fake
+        return self.get_reports(task_id)
+
 
 @pytest.mark.asyncio
 async def test_dispatch_job_raises_when_task_missing() -> None:

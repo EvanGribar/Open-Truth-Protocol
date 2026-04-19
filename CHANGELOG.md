@@ -18,6 +18,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Scorer confidence discount tests validating pull-toward-neutral behavior
 - Scorer weight distribution tests validating text vs image weight differences
 - Tests for mixed agent status scenarios (SUCCESS/ERROR/TIMEOUT combinations)
+- `aggregate_results` in orchestrator service replacing placeholder `collect_results` activity
 
 ### Changed
 
@@ -28,6 +29,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - GitHub issue templates for bug, feature, and security reporting flows
 - Pull request template with AGENTS.md contract and benchmark checklist
 - Phase 1 backlog workflow document at `.github/project/BACKLOG.md`
+- Updated AGENTS.md to reflect new `aggregate_results` integration contract
+
+### Fixed
+
+- Replaced placeholder `collect_results` activity with real aggregation integration (issue #3)
 - Temporal workflow worker bootstrap in orchestrator service startup
 - Orchestrator Temporal activities that dispatch pending jobs and collect reports until completion/timeout
 - Unit test coverage for orchestrator activity behavior and pending-job dispatch flow

@@ -310,6 +310,61 @@ class OrchestratorService:
         else:
             logger.warning("ledger_receipt_update_failed_task_not_in_cache", task_id=task_id)
 
+    def aggregate_results(self, task_id: str, timeout_seconds: int) -> dict[str, dict[str, Any]]:
+        """Collect and aggregate per-agent results for a task, respecting per-agent timeouts.
+        Returns a dict keyed by agent name with each agent's result or a synthetic timeout payload."""
+        import time as _time
+        job = self._jobs.get(task_id)
+        if job is None:
+            logger.warning("aggregate_for_unknown_task", task_id=task_id)
+            return {}
+
+        reports: dict[str, dict[str, Any]] = {}
+        active = list(job.active_agents)
+        if not active:
+            return reports
+
+        # Compute remaining time after dispatch has already consumed some
+        elapsed = (datetime.now(tz=UTC) - job.timestamp_utc).total_seconds()
+        remaining = max(0.0, timeout_seconds - elapsed)
+
+        # Per-agent deadline tracking
+        deadlines: dict[str, float] = {
+            agent: monotonic() + max(agent_timeout, 1)
+            for agent, agent_timeout in (
+                (a, self.workflow_timeout_for_media_type(job.media_type))
+                for a in active
+            )
+        }
+
+        pending = set(active)
+        while pending and monotonic() < min(deadlines.values()):
+            task_reports = self._reports.get(task_id)
+            if task_reports:
+                for agent in list(pending):
+                    if agent in task_reports and agent not in reports:
+                        reports[agent] = task_reports[agent]
+                        pending.remove(agent)
+            if pending:
+                sleep_for = min(0.05, (min(deadlines.values()) - monotonic()) if deadlines else 0.1)
+                if sleep_for > 0:
+                    _time.sleep(sleep_for)
+
+        # Emit synthetic timeouts for any agent that didn't respond
+        for agent in pending:
+            synthetic = self._synthetic_timeout_report(agent=agent, duration_ms=int(elapsed * 1000))
+            synthetic["task_id"] = task_id
+            reports[agent] = synthetic
+            logger.warning("aggregate_agent_timeout", task_id=task_id, agent=agent)
+
+        activity.logger.info(
+            "aggregate_results",
+            task_id=task_id,
+            aggregated_count=len(reports),
+            pending_count=len(pending),
+        )
+        return reports
+
     def get_reports(self, task_id: str) -> dict[str, dict[str, Any]]:
         reports = self._reports.get(task_id)
         if reports is None:

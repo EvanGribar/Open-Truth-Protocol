@@ -262,9 +262,14 @@ For text submissions, `media_type` is one of `text/plain`, `text/html`, or `text
 }
 ```
 
+#### Orchestrator Responsibilities
+- `collect_results` delegates to the service method `aggregate_results`, which polls per-agent reports respecting per-agent deadlines
+- `aggregate_results` synthesizes timeout reports for agents that do not respond within their per-agent SLA
+- Unknown or inactive agents are safely ignored (no entry in the returned report dict)
+
 #### Timeout Behavior
 
-If an agent does not publish a result within its SLA window, the Orchestrator marks that agent's result as `status: "timeout"` and proceeds with available results. A score can be computed from 2/3 agents. If 2+ agents time out, the job returns `verdict: "INCONCLUSIVE"` with a partial report.
+If an agent does not publish a result within its per-agent SLA window, the Orchestrator marks that agent's result as `status: "timeout"` and proceeds with available results. A score can be computed from 2/3 agents. If 2+ agents time out, the job returns `verdict: "INCONCLUSIVE"` with a partial report.
 
 ---
 

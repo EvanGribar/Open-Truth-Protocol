@@ -51,20 +51,29 @@ async def collect_results(task_id: str, timeout_seconds: int) -> dict[str, Any]:
     service = _require_service()
     deadline = monotonic() + max(timeout_seconds, 1)
 
-    while monotonic() < deadline:
-        if service.is_task_complete(task_id):
-            break
-        await asyncio.sleep(0.1)
+    # Phase 1: use service aggregation to obtain per-agent outcomes
+    aggregated = await service.aggregate_results(task_id, timeout_seconds)
 
+    # Preserve partial-result handling: include whatever is available
+    reports: dict[str, Any] = {}
+    for agent_name, outcome in aggregated.items():
+        status = outcome.get("status")
+        if status is None or status == "unknown":
+            # Ignore inactive/unknown agents safely
+            activity.logger.debug("ignoring_inactive_agent", agent=agent_name, task_id=task_id)
+            continue
+        reports[agent_name] = outcome
+
+    # If task not fully complete by deadline, finalize missing timeouts
     if not service.is_task_complete(task_id):
         service.finalize_missing_timeouts(task_id)
 
-    reports = service.get_reports(task_id)
     activity.logger.info(
         "collect_results",
         task_id=task_id,
         timeout_seconds=timeout_seconds,
         report_count=len(reports),
+        aggregated=True,
     )
     return {
         "task_id": task_id,
