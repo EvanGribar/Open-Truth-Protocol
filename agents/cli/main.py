@@ -28,17 +28,9 @@ def _resolve_local_file(file_path: str) -> tuple[str, int, str]:
 
 
 async def verify_file(file_name: str, file_size_bytes: int, media_type: str, api_url: str) -> None:
-    # In a real CLI, we would upload to S3 first.
-    # For Phase 1 MVP, we simulate or assume the file is already in S3 or provided via local path
-    # if the API supports it. But AGENTS.md says "Agents... pull from S3".
-
-    # Let's assume for now the user has uploaded it or we use a mock blob_uri
-    # Actually, the Orchestrator.create_job handles normalization to S3.
-    # So the CLI should just send the media to the API Gateway.
-
-    # Wait, Orchestrator main.py has an /ingest endpoint.
-    # It takes media_type, media_size_bytes, blob_uri, etc.
-    # It seems the API expects the blob to ALREADY be in S3.
+    # For this MVP CLI, we submit ingest metadata and a placeholder blob URI.
+    # In the Local-First architecture, orchestrator-side normalization stores media
+    # in local data paths per AGENTS.md §3.4.
 
     print(f"Verifying {file_name}...")
 
