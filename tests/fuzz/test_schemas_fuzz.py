@@ -6,7 +6,9 @@ import json
 import sys
 from typing import Any
 
-import atheris  # type: ignore[import-untyped]
+import pytest
+
+atheris = pytest.importorskip("atheris")
 
 with atheris.instrument_imports():
     from pydantic import ValidationError
