@@ -48,7 +48,7 @@ async function writeActionOutput(name: string, value: string): Promise<void> {
     return;
   }
 
-  await appendFile(outputPath, `${name}=${value.replace(/\r?\n/g, "%0A")}\n`, "utf8");
+  await appendFile(outputPath, `${name}=${value}\n`, "utf8");
 }
 
 async function resolvePullRequestNumber(): Promise<number> {
@@ -140,13 +140,13 @@ async function main(): Promise<void> {
       : headlineSummary;
 
   const commentResult = await upsertPullRequestComment(octokit, owner, repo, pullNumber, commentBody);
-  await updateCheckRun(octokit, owner, repo, checkRunId, commentBody);
+  const checkRunUpdated = await updateCheckRun(octokit, owner, repo, checkRunId, commentBody);
 
   await writeActionOutput("pull-number", String(pullNumber));
   await writeActionOutput("output-mode", swarmConfig.output.mode);
   await writeActionOutput("comment-id", String(commentResult.commentId));
   await writeActionOutput("comment-action", commentResult.action);
-  await writeActionOutput("check-run-updated", parsePositiveInteger(checkRunId ?? "") ? "true" : "false");
+  await writeActionOutput("check-run-updated", String(checkRunUpdated));
 
   if (commentResult.commentUrl) {
     await writeActionOutput("comment-url", commentResult.commentUrl);
