@@ -30,7 +30,7 @@ jobs:
       - name: Run swarm-review
         uses: ./
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           anthropic-model: claude-3-5-sonnet-latest
           config-path: .swarm.yml
