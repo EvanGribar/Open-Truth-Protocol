@@ -19,6 +19,19 @@ inputs:
   check-run-id:
     description: Optional existing check run ID to update after the review.
     required: false
+outputs:
+  pull-number:
+    description: Pull request number processed by this run.
+  output-mode:
+    description: Render mode used for the posted comment (outcome or full).
+  comment-id:
+    description: Numeric ID of the created or updated PR comment.
+  comment-action:
+    description: Whether the PR comment was created or updated.
+  comment-url:
+    description: URL of the created or updated PR comment when available.
+  check-run-updated:
+    description: True when a valid check-run-id was provided and used.
 runs:
   using: node20
   main: dist/index.js

@@ -20,6 +20,17 @@ Most AI review tools give you one opinion. swarm-review gives you a review proce
 4. The principal agent synthesizes the transcript into a final summary.
 5. The action updates the PR comment and, optionally, the check run.
 
+## Architecture
+
+swarm-review uses a strict three-stage pipeline:
+
+1. Review stage (parallel): each agent reviews the same diff independently.
+2. Debate stage (round-based): agents receive the shared transcript and can rebut or reinforce findings.
+3. Principal stage: one synthesis pass turns the transcript into a final call.
+
+All model output is validated with Zod before it can flow to the next stage.
+If an output is malformed, the run fails fast instead of silently accepting invalid content.
+
 ## Quick Start
 
 Add this workflow to your repository:
@@ -98,6 +109,33 @@ output:
 - `outcome`: posts only the principal summary.
 - `full`: posts the principal summary plus the full round-by-round transcript.
 
+Example (`outcome`):
+
+```text
+## swarm-review
+
+security flagged src/api/users.ts:47 - raw user input is passed into query construction.
+principal: blocking until this path uses parameterized queries.
+```
+
+Example (`full`):
+
+```text
+## swarm-review
+
+security flagged src/api/users.ts:47 - raw user input is passed into query construction.
+principal: blocking until this path uses parameterized queries.
+
+### Debate Transcript
+#### Round 1
+- [BLOCKING] security - src/api/users.ts:47
+  - Raw user input is passed into query construction.
+
+#### Round 2
+- [WARNING] performance - src/api/users.ts:47
+  - Endpoint traffic is low, but query safety still should be fixed.
+```
+
 ### Config fields
 
 - `agents`: list of reviewer agents, each with a `name`, `mandate`, and optional `model`.
@@ -113,6 +151,15 @@ output:
 - `anthropic-model`: optional model override for all agents.
 - `config-path`: optional path to the swarm config file.
 - `check-run-id`: optional existing check run ID to update after the review.
+
+## Action Outputs
+
+- `pull-number`: pull request number processed by this run.
+- `output-mode`: active render mode (`outcome` or `full`).
+- `comment-id`: numeric ID of the created or updated PR comment.
+- `comment-action`: either `created` or `updated`.
+- `comment-url`: URL of the created or updated PR comment when available.
+- `check-run-updated`: `true` when a valid check run ID was provided and updated.
 
 ## Example Result
 
@@ -133,6 +180,29 @@ npm install
 npm run build
 npm test
 ```
+
+## Troubleshooting
+
+- Missing token or API key:
+  - Ensure `github-token` and `anthropic-api-key` are passed to the action.
+- The action cannot resolve pull request number:
+  - Confirm the workflow runs on pull request events, or provide `pull-number` through environment input.
+- LLM response parsing failures:
+  - The run fails when the model output is not valid JSON matching the schema.
+  - Retry with a stricter model instruction in your agent mandates or principal mandate.
+- Check run was not updated:
+  - `check-run-id` must be a positive integer string.
+
+## Practical Limits
+
+- Large diffs increase token usage and can reduce claim quality due to context compression.
+- High agent counts and many debate rounds increase runtime and cost linearly.
+- Recommended starting point:
+  - 3-5 agents
+  - 1-2 debate rounds
+  - confidence threshold of 0.6-0.75
+
+Tune these values based on repository size and expected review depth.
 
 ## Release Process
 
