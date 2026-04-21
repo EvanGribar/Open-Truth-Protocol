@@ -6,18 +6,9 @@ import { loadSwarmConfig } from "./config.js";
 import { runDebateRounds } from "./agents/debate.js";
 import { runReviewRound } from "./agents/review.js";
 import { synthesizePrincipalSummary } from "./agents/principal.js";
-import { upsertPullRequestComment, updateCheckRun } from "./github.js";
+import { upsertPullRequestComment, updateCheckRun, parsePositiveInteger } from "./github.js";
 import { DEFAULT_ANTHROPIC_MODEL } from "./llm.js";
 import { renderDebateTranscriptMarkdown } from "./format.js";
-
-function parsePositiveInteger(value: string): number | undefined {
-  if (!/^\d+$/.test(value)) {
-    return undefined;
-  }
-
-  const parsed = Number(value);
-  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
-}
 
 function readInput(name: string): string | undefined {
   const candidates = [
@@ -69,7 +60,7 @@ async function resolvePullRequestNumber(): Promise<number> {
     }
   }
 
-  const fallback = readInput("pull-number") ?? process.env.PULL_NUMBER;
+  const fallback = readInput("pull-number");
   if (fallback) {
     const parsed = parsePositiveInteger(fallback);
     if (parsed !== undefined) {
@@ -79,6 +70,7 @@ async function resolvePullRequestNumber(): Promise<number> {
 
   throw new Error("Unable to resolve the pull request number from the GitHub event payload.");
 }
+
 
 async function main(): Promise<void> {
   const githubToken = readInput("github-token") ?? process.env.GITHUB_TOKEN;

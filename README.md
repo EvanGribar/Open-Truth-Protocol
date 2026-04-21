@@ -136,14 +136,13 @@ npm test
 
 ## Release Process
 
-v0.0.2 is delivered in four stage-specific pull requests so each risk domain is reviewed independently:
+Releases are delivered in stage-specific pull requests so each risk domain is reviewed independently. This keeps reviews focused and makes rollback decisions straightforward. For example, a release cycle typically includes:
 
 1. Stability and safety hardening.
 2. Diff scaling and runtime reliability.
 3. Coverage expansion for key helpers.
 4. Documentation and release metadata.
 
-This keeps reviews focused and makes rollback decisions straightforward.
 
 ## Project Layout
 

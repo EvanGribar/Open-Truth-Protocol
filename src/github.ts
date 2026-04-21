@@ -2,6 +2,15 @@ import type { Octokit } from "@octokit/rest";
 
 const MANAGED_COMMENT_MARKER = "<!-- swarm-review:managed-comment -->";
 
+export function parsePositiveInteger(value: string): number | undefined {
+  if (!/^\d+$/.test(value)) {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 function withManagedCommentMarker(body: string): string {
   if (body.includes(MANAGED_COMMENT_MARKER)) {
     return body;
@@ -19,16 +28,21 @@ export async function upsertPullRequestComment(
 ): Promise<void> {
   const managedBody = withManagedCommentMarker(body);
 
-  const comments = await octokit.paginate(
-    octokit.rest.issues.listComments,
-    { owner, repo, issue_number: pullNumber, per_page: 100 },
-    (response) => response.data
-  );
+  const [comments, { data: authenticatedUser }] = await Promise.all([
+    octokit.paginate(octokit.rest.issues.listComments, {
+      owner,
+      repo,
+      issue_number: pullNumber,
+      per_page: 100,
+    }),
+    octokit.rest.users.getAuthenticated(),
+  ]);
 
   const existingComment = [...comments].reverse().find(
     (comment) =>
       comment.body?.includes(MANAGED_COMMENT_MARKER) ||
-      (comment.body?.startsWith("## swarm-review") && comment.user?.type === "Bot")
+      (comment.body?.startsWith("## swarm-review") &&
+        (comment.user?.type === "Bot" || comment.user?.login === authenticatedUser.login))
   );
 
   if (existingComment) {
@@ -60,12 +74,8 @@ export async function updateCheckRun(
     return;
   }
 
-  if (!/^\d+$/.test(checkRunId)) {
-    return;
-  }
-
-  const numericCheckRunId = Number(checkRunId);
-  if (!Number.isSafeInteger(numericCheckRunId) || numericCheckRunId <= 0) {
+  const numericCheckRunId = parsePositiveInteger(checkRunId);
+  if (numericCheckRunId === undefined) {
     return;
   }
 
@@ -80,4 +90,4 @@ export async function updateCheckRun(
       summary,
     },
   });
-}
+}

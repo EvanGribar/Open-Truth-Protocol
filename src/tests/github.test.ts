@@ -8,8 +8,10 @@ type MockComment = {
   body?: string;
   user?: {
     type?: string;
+    login?: string;
   };
 };
+
 
 function createOctokitMock(comments: MockComment[] = []) {
   const state = {
@@ -21,6 +23,9 @@ function createOctokitMock(comments: MockComment[] = []) {
   const octokit = {
     paginate: async () => comments,
     rest: {
+      users: {
+        getAuthenticated: async () => ({ data: { login: "swarm-bot" } }),
+      },
       issues: {
         listComments: async () => ({ data: comments }),
         updateComment: async (args: Record<string, unknown>) => {
@@ -50,7 +55,7 @@ test("upsertPullRequestComment updates latest matching swarm comment", async () 
     {
       id: 2,
       body: "## swarm-review\n\nexisting",
-      user: { type: "User" },
+      user: { type: "User", login: "swarm-bot" },
     },
   ]);
 
@@ -81,10 +86,11 @@ test("updateCheckRun ignores non-numeric IDs and updates numeric IDs", async () 
   await updateCheckRun(octokit as never, "owner", "repo", "1.2", "summary");
   await updateCheckRun(octokit as never, "owner", "repo", "-3", "summary");
 
-  assert.equal(state.checks.length, 2);
+  assert.equal(state.checks.length, 0);
 
   await updateCheckRun(octokit as never, "owner", "repo", "42", "summary");
 
-  assert.equal(state.checks.length, 3);
-  assert.equal(state.checks[2]?.check_run_id, 42);
+  assert.equal(state.checks.length, 1);
+  assert.equal(state.checks[0]?.check_run_id, 42);
 });
+

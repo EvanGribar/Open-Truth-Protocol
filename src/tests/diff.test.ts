@@ -28,5 +28,7 @@ test("formatFileDiffs renders multiple files and large patches", () => {
 
   assert.match(rendered, /### src\/large\.ts/);
   assert.match(rendered, /### src\/extra\.ts/);
-  assert.match(rendered, /x{20}/);
+  assert.match(rendered, /```diff\nx{80}\n```/);
+  assert.match(rendered, /```diff\n\+const a = 1;\n```/);
 });
+
