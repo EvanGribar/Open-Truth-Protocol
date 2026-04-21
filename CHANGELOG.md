@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [0.1.1]
+
 ### Added
 - Expanded automated test coverage for agent orchestration flows:
   - Shared finding round normalization and confidence filtering
@@ -14,8 +16,6 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 - Updated package baseline version to 0.1.1 for release alignment.
-
-## [0.1.1]
 
 ### Notes
 - Baseline release marker used for current project state.
