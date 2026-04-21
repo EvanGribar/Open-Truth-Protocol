@@ -1,56 +1,215 @@
-# AGENTS.md — Open Truth Protocol (OTP) — ARCHIVED
+# AGENTS.md — swarm-review
 
-**Status:** SUPERSEDED — See [SPECIFICATION.md](SPECIFICATION.md) and [RESEARCH_ROADMAP.md](RESEARCH_ROADMAP.md)  
-**Last Updated:** April 2026
+## What we are building
 
-> [!WARNING]
-> **Project Pivot:** OTP has shifted focus from multi-modal media verification (images, video, audio) to **100% accuracy AI-generated text detection**. This document describes the legacy architecture and is retained for historical reference only. All active development follows the specifications in SPECIFICATION.md.
+**swarm-review** is an open source GitHub Action that brings a swarm of AI agents to every pull request. Each agent reviews the diff independently with its own mandate and expertise. Agents then debate each other's findings — one agent can dispute another's claim, defend its position, or concede. A principal agent reads the full debate transcript and writes the final PR comment, showing where agents agreed, where they clashed, and what the final call is.
 
-# AGENTS.md — Open Truth Protocol (OTP) — ARCHIVED
+The output is not a single blob of AI feedback. It reads like a real engineering team reviewed your PR.
 
-**Status:** SUPERSEDED — See [SPECIFICATION.md](SPECIFICATION.md) and [RESEARCH_ROADMAP.md](RESEARCH_ROADMAP.md)  
-**Last Updated:** April 2026
-
-> [!WARNING]
-> **Project Pivot:** OTP has shifted focus from multi-modal media verification (images, video, audio) to **100% accuracy AI-generated text detection**. This document describes the legacy architecture and is retained for historical reference only. All active development follows the specifications in SPECIFICATION.md.
+This is the mechanic that doesn't exist anywhere else. That is the north star.
 
 ---
 
-## New Project Direction
+## Goals
 
-**Mission:** Achieve 100% accuracy in detecting AI-generated text.
-
-**Focus Areas:**
-- Text-only detection (Phase 1)
-- Multi-signal analysis (8 core signals)
-- Ensemble scoring for classification
-- Community-validated benchmarking
-- Open-source, reproducible methodology
-
-**Read Next:**
-1. [SPECIFICATION.md](SPECIFICATION.md) — Technical specification for 100% accuracy
-2. [RESEARCH_ROADMAP.md](RESEARCH_ROADMAP.md) — Implementation roadmap and validation phases
-3. [README.md](README.md) — Project overview
+- Zero hosting required — runs entirely inside GitHub Actions
+- Users supply their own AI company (or openrouter, hermes, etc) API key as a repo secret
+- Configurable — teams define their own agent roster, mandates, and debate rules via `.swarm.yml` in their repo
+- The agent count, names, and specialties are not fixed — the swarm is whatever the team needs it to be
+- Open source, MIT licensed, built to be forked and extended
 
 ---
 
-## Legacy Architecture (Archived)
+## Core mechanic
 
-The following sections describe the previous multi-modal agent architecture. This is retained for historical reference and may inform future work on image/video verification.
+### Round 1 — independent review
+All agents receive the raw git diff in parallel. Each agent has no knowledge of what the others will say. Each returns structured findings: a claim, a severity, a file, a line, and a confidence score.
 
-### Previous Scope (No Longer Active)
+### Round 2 — debate
+Each agent receives the full findings from all other agents. Each agent can produce new findings or rebuttals targeting another agent's finding by ID. Rebuttals can agree, dispute, or escalate. Agents can be rebutted back. The number of debate rounds is configurable.
 
-The original OTP design included:
-- **Orchestrator Agent** — Centralized task dispatch via Kafka
-- **Cryptographic Provenance Agent** — C2PA and EXIF analysis for media
-- **Synthetic Heuristics Agent** — PRNU, frequency analysis, perplexity for images/video
-- **Web Consensus Agent** — Reverse image search, context validation
-- **Ledger Commitment Agent** — IPFS pinning and blockchain recording
+### Round 3 — synthesis
+A principal agent reads the complete debate transcript — all findings and all rebuttals — and produces the final PR comment. The comment surfaces agreements, unresolved disputes, and final calls with reasoning. The principal can override, defer, or escalate any finding.
 
-All of the above is **out of scope** for the current initiative. Code in `agents/` directory reflects this legacy architecture and will be refactored or removed as the text-focused implementation progresses.
+This should be configureable. If a user wants to see the full process, they can toggle the agents to comment all. If the user wwant to only see the outcome, they should be able to toggle that.
 
 ---
 
-## Contributing
+## Data model
 
-For the new text detection initiative, see [CONTRIBUTING.md](CONTRIBUTING.md) and [RESEARCH_ROADMAP.md](RESEARCH_ROADMAP.md#contributing).
+The schema is the contract between all agents. Get this right first before any implementation.
+
+```typescript
+type Severity = "blocking" | "warning" | "suggestion"
+
+type Finding = {
+  id: string
+  agent: string           // agent name from .swarm.yml
+  severity: Severity
+  file: string
+  line: number
+  claim: string           // the actual finding in plain English
+  confidence: number      // 0.0 to 1.0
+  rebuttal_to?: string    // ID of the finding this disputes, if any
+}
+
+type DebateTranscript = {
+  rounds: Finding[][]     // each round is an array of findings/rebuttals
+  agents: AgentConfig[]
+}
+
+type AgentConfig = {
+  name: string
+  mandate: string         // plain English description of what this agent looks for
+  model?: string          // optional model override per agent
+}
+
+type PrincipalSummary = {
+  agreements: Finding[]
+  disputes: { finding: Finding; rebuttal: Finding }[]
+  final_calls: { finding: Finding; decision: string }[]
+  summary: string         // the markdown block posted to GitHub
+}
+```
+
+---
+
+## Configuration
+
+Teams configure their swarm via `.swarm.yml` at the repo root. The schema is flexible — any agent name and mandate is valid. Example:
+
+```yaml
+agents:
+  - name: security
+    mandate: >
+      Review for security vulnerabilities. Look for injection risks, exposed secrets,
+      broken auth, insecure defaults, and unsafe data handling.
+
+  - name: performance
+    mandate: >
+      Review for performance issues. Look for N+1 queries, unnecessary re-renders,
+      expensive operations in hot paths, and missing pagination.
+
+  - name: architecture
+    mandate: >
+      Review for architectural concerns. Look for separation of concerns violations,
+      tight coupling, naming inconsistency, and patterns that don't fit the codebase.
+
+  - name: dx
+    mandate: >
+      Review for developer experience. Look for missing tests, outdated docs,
+      unclear variable names, and changes that will be hard to maintain.
+
+debate:
+  rounds: 2               # how many debate rounds before synthesis
+  min_confidence: 0.6     # findings below this threshold are soft-filtered
+
+principal:
+  mandate: >
+    You are the principal engineer. Read the full debate and make final calls.
+    Be direct. Show your reasoning. Surface genuine disagreements clearly.
+```
+
+---
+
+## Tech stack
+
+- **Language:** TypeScript
+- **Runtime:** GitHub Actions (`runs-on: ubuntu-latest`)
+- **AI:** Anthropic API (user supplies `ANTHROPIC_API_KEY` as repo secret)
+- **GitHub API:** Octokit for reading diffs and posting comments
+- **Parallelism:** `Promise.all` for round 1, sequential per debate round
+- **Schema validation:** Zod for all agent outputs
+- **Config parsing:** `js-yaml` for `.swarm.yml`
+
+---
+
+## File structure
+
+```
+swarm-review/
+├── .github/
+│   └── workflows/
+│       └── example.yml       # example workflow for users to copy
+├── src/
+│   ├── types.ts              # Finding, DebateTranscript, AgentConfig, PrincipalSummary
+│   ├── config.ts             # parse and validate .swarm.yml
+│   ├── diff.ts               # fetch and parse the PR diff via Octokit
+│   ├── agents/
+│   │   ├── review.ts         # round 1 — run all agents in parallel
+│   │   ├── debate.ts         # round 2 — run debate rounds
+│   │   └── principal.ts      # round 3 — synthesize and post comment
+│   ├── prompts.ts            # all prompt templates in one place
+│   ├── github.ts             # post comment, update check run
+│   └── index.ts              # entrypoint, orchestrates the three rounds
+├── action.yml                # GitHub Action metadata
+├── .swarm.yml                # default config (used if repo has none)
+├── AGENTS.md                 # this file
+└── README.md
+```
+
+---
+
+## Build order
+
+Build in this order. Do not skip ahead.
+
+1. `src/types.ts` — define all types and Zod schemas. Nothing else until this is solid.
+2. `src/config.ts` — parse `.swarm.yml`, validate against schema, export `SwarmConfig`
+3. `src/diff.ts` — fetch PR diff from GitHub API, return as structured `FileDiff[]`
+4. `src/prompts.ts` — write all prompt templates. Keep prompts centralized, never inline.
+5. `src/agents/review.ts` — round 1. Run all agents in parallel, collect `Finding[]`
+6. `src/agents/debate.ts` — round 2. Run debate rounds, build `DebateTranscript`
+7. `src/agents/principal.ts` — round 3. Synthesize, format, post GitHub comment
+8. `src/index.ts` — wire everything together
+9. `action.yml` — package as GitHub Action
+10. `README.md` — write last, when the thing actually works
+
+---
+
+## Prompting rules
+
+- Every agent prompt must include: the agent's mandate, the full diff, and (in debate rounds) the findings it is responding to
+- Instruct agents to return **only valid JSON** matching the `Finding[]` schema — no preamble, no markdown fences
+- The principal prompt must include the full `DebateTranscript` and instruct it to return a `PrincipalSummary`
+- Keep all prompt templates in `src/prompts.ts` — never scatter them across files
+- Use Zod to parse and validate every agent response before passing it downstream — never trust raw LLM output
+
+---
+
+## Installing skills
+
+Before implementing any file type handling, parsing, or output formatting, check for relevant skills:
+
+```
+/mnt/skills/public/
+```
+
+Read the relevant `SKILL.md` before writing any code that touches file I/O, document generation, or structured output. Skills encode environment-specific constraints that are not in training data.
+
+---
+
+## What success looks like
+
+A developer opens a PR. Within 2 minutes, a comment appears that reads like this:
+
+```
+## swarm-review
+
+**🔒 security** flagged `src/api/users.ts:47` — raw user input passed directly to query string (blocking, 0.91)
+**⚡ performance** disputes — this endpoint is internal-only, not reachable by untrusted input (0.74)
+**🔒 security** maintains position — internal-only is an assumption, not enforced at the transport layer
+**🧠 principal** → security is right. The assumption is not enforced. Use a parameterized query. Blocking.
+
+---
+
+**✅ agreed** — `src/components/Table.tsx:12` missing key prop (dx + architecture, warning)
+**✅ agreed** — `src/hooks/useData.ts:88` unnecessary re-fetch on every render (performance, warning)
+
+---
+
+**💬 unresolved** — `src/lib/auth.ts:203` architecture flagged god object pattern, dx disagrees (refactor scope unclear)
+→ principal defers: log as tech debt, not blocking this PR
+```
+
+That output. That is the goal. Every implementation decision should serve producing exactly that.
