@@ -2,6 +2,12 @@ import type { Octokit } from "@octokit/rest";
 
 const MANAGED_COMMENT_MARKER = "<!-- swarm-review:managed-comment -->";
 
+export type UpsertPullRequestCommentResult = {
+  action: "created" | "updated";
+  commentId: number;
+  commentUrl?: string;
+};
+
 export function parsePositiveInteger(value: string): number | undefined {
   if (!/^\d+$/.test(value)) {
     return undefined;
@@ -25,7 +31,7 @@ export async function upsertPullRequestComment(
   repo: string,
   pullNumber: number,
   body: string
-): Promise<void> {
+): Promise<UpsertPullRequestCommentResult> {
   const managedBody = withManagedCommentMarker(body);
 
   const [comments, authenticatedUser] = await Promise.all([
@@ -48,21 +54,32 @@ export async function upsertPullRequestComment(
   );
 
   if (existingComment) {
-    await octokit.rest.issues.updateComment({
+    const response = await octokit.rest.issues.updateComment({
       owner,
       repo,
       comment_id: existingComment.id,
       body: managedBody,
     });
-    return;
+
+    return {
+      action: "updated",
+      commentId: response.data.id,
+      commentUrl: response.data.html_url,
+    };
   }
 
-  await octokit.rest.issues.createComment({
+  const response = await octokit.rest.issues.createComment({
     owner,
     repo,
     issue_number: pullNumber,
     body: managedBody,
   });
+
+  return {
+    action: "created",
+    commentId: response.data.id,
+    commentUrl: response.data.html_url,
+  };
 }
 
 export async function updateCheckRun(

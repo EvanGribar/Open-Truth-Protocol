@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { appendFile, readFile } from "node:fs/promises";
 
 import { createOctokit, fetchPullRequestDiff } from "./diff.js";
 import { loadSwarmConfig } from "./config.js";
@@ -40,6 +40,15 @@ function resolveRepository(): { owner: string; repo: string } {
   }
 
   return { owner, repo };
+}
+
+async function writeActionOutput(name: string, value: string): Promise<void> {
+  const outputPath = process.env.GITHUB_OUTPUT;
+  if (!outputPath) {
+    return;
+  }
+
+  await appendFile(outputPath, `${name}=${value.replace(/\r?\n/g, "%0A")}\n`, "utf8");
 }
 
 async function resolvePullRequestNumber(): Promise<number> {
@@ -130,8 +139,18 @@ async function main(): Promise<void> {
       ? `${headlineSummary}${renderDebateTranscriptMarkdown(transcript)}`
       : headlineSummary;
 
-  await upsertPullRequestComment(octokit, owner, repo, pullNumber, commentBody);
+  const commentResult = await upsertPullRequestComment(octokit, owner, repo, pullNumber, commentBody);
   await updateCheckRun(octokit, owner, repo, checkRunId, commentBody);
+
+  await writeActionOutput("pull-number", String(pullNumber));
+  await writeActionOutput("output-mode", swarmConfig.output.mode);
+  await writeActionOutput("comment-id", String(commentResult.commentId));
+  await writeActionOutput("comment-action", commentResult.action);
+  await writeActionOutput("check-run-updated", parsePositiveInteger(checkRunId ?? "") ? "true" : "false");
+
+  if (commentResult.commentUrl) {
+    await writeActionOutput("comment-url", commentResult.commentUrl);
+  }
 
   console.log("swarm-review completed successfully.");
 }
