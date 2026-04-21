@@ -14,6 +14,20 @@
 ### Notes
 - This release focuses on confidence, operability, and integration ergonomics ahead of a 1.0 hardening cycle.
 
+## v0.1.1 - 2026-04-21
+
+### Added
+- Expanded automated test coverage for agent orchestration flows (shared finding normalization, review fan-out, debate progression, and synthesis schema).
+- Added package metadata for repository links, issue tracking, and npm keywords.
+
+### Changed
+- Baseline version aligned to 0.1.1 for v0.2.0 development cycle.
+
+## v0.1.0 - 2026-04-21
+
+### Added
+- Initial v0.1.x baseline release.
+
 ## v0.0.2 - 2026-04-21
 
 ### Added
