@@ -4,7 +4,7 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
-## [0.1.1]
+## v0.1.1 - 2026-04-21
 
 ### Added
 - Expanded automated test coverage for agent orchestration flows:
@@ -19,3 +19,15 @@ All notable changes to this project are documented in this file.
 
 ### Notes
 - Baseline release marker used for current project state.
+
+## v0.0.2 - 2026-04-21
+
+### Added
+- Structured release plan execution in four delivery stages.
+- Expanded unit coverage for diff formatting and GitHub helper behavior.
+
+### Changed
+- Release metadata updated for the v0.0.2 cycle.
+
+### Notes
+- Stage-specific implementation PRs are used to keep risk isolated and review focused.
