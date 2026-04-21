@@ -4,7 +4,7 @@ import { FindingSchema, RawFindingSchema, type Finding, type RawFinding } from "
 
 const ANTHROPIC_MESSAGES_ENDPOINT = "https://api.anthropic.com/v1/messages";
 const DEFAULT_REQUEST_TIMEOUT_MS = 90_000;
-const MAX_RETRY_ATTEMPTS = 2;
+const MAX_RETRY_ATTEMPTS = 3;
 
 export const DEFAULT_ANTHROPIC_MODEL = "claude-3-5-sonnet-latest";
 
@@ -71,6 +71,7 @@ export async function callAnthropic(
     const abortController = new AbortController();
     const timeout = setTimeout(() => abortController.abort(), DEFAULT_REQUEST_TIMEOUT_MS);
     let retryableFailure = false;
+    let retryDelayMs = 500 * 2 ** (attempt - 1);
 
     try {
       const response = await fetch(ANTHROPIC_MESSAGES_ENDPOINT, {
@@ -91,6 +92,12 @@ export async function callAnthropic(
       });
 
       if (!response.ok) {
+        const retryAfterHeader = response.headers.get("retry-after");
+        const retryAfterSeconds = retryAfterHeader ? Number(retryAfterHeader) : NaN;
+        if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+          retryDelayMs = Math.max(retryDelayMs, retryAfterSeconds * 1000);
+        }
+
         const error = new Error(
           `Anthropic request failed with ${response.status}: ${await response.text()}`
         );
@@ -116,7 +123,7 @@ export async function callAnthropic(
       }
 
       if (attempt < MAX_RETRY_ATTEMPTS && retryableFailure) {
-        await waitFor(500 * attempt);
+        await waitFor(retryDelayMs);
         continue;
       }
       throw lastError;
