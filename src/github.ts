@@ -88,14 +88,14 @@ export async function updateCheckRun(
   repo: string,
   checkRunId: string | undefined,
   summary: string
-): Promise<void> {
+): Promise<boolean> {
   if (!checkRunId) {
-    return;
+    return false;
   }
 
   const numericCheckRunId = parsePositiveInteger(checkRunId);
   if (numericCheckRunId === undefined) {
-    return;
+    return false;
   }
 
   await octokit.rest.checks.update({
@@ -109,4 +109,6 @@ export async function updateCheckRun(
       summary: summary.length > 65535 ? summary.slice(0, 65530) + "..." : summary,
     },
   });
+
+  return true;
 }
