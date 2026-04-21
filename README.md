@@ -1,52 +1,64 @@
-# Open Truth Protocol
+# Open Truth Protocol: AI-Generated Text Detection
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/EvanGribar/Open-Truth-Protocol/badge)](https://scorecard.dev/viewer/?uri=github.com/EvanGribar/Open-Truth-Protocol)
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/9944/badge)](https://bestpractices.coreinfrastructure.org/projects/9944)
 
-## What is OTP?
+## Mission
 
-**OTP is a decentralized, open-source protocol for specialized AI agents that collectively verify the authenticity of digital media locally on your hardware.**
+**Achieve 100% accuracy in detecting AI-generated text.**
 
-A piece of media—image, video, audio, or text—is processed by a local orchestrator. Multiple specialized agents analyze it for authenticity signals. A cryptographically anchored `TruthConsensus` record is generated, which can be immutably pinned to IPFS and hashed to a public blockchain. Every verification is:
+Open Truth Protocol is an open-source research and engineering effort to build the most accurate, transparent, and reproducible system for identifying AI-generated text. We treat this as a solved problem that requires rigorous, verifiable methodology—not probabilistic heuristics.
 
-- **Local-First.** Users run the analysis on their own devices. No media ever leaves the user's control.
-- **Transparent.** Each agent surfaces human-readable evidence for its score.
-- **Asynchronous.** Agents run in parallel; no single point of failure.
-- **Immutable.** Every attestation is permanently auditable via public ledgers.
+## The Problem
 
-## Why OTP?
+AI-generated text is indistinguishable from human writing at scale. Current detection systems are:
 
-Digital authenticity is broken. Deepfakes are indistinguishable from reality. AI-generated text floods social media. Communities have no way to verify what they see.
+- **Unreliable.** Detection rates vary wildly (40-90%) depending on model, language, and domain.
+- **Black-box.** Proprietary systems offer no transparency into their methodology.
+- **Non-reproducible.** Academic detectors are often built on proprietary datasets and cannot be audited by the community.
+- **Model-dependent.** Detectors trained on GPT-3 fail on Claude, Gemini, Llama, etc.
 
-Existing solutions are siloed: X, Facebook, and TikTok each have proprietary, black-box labels governed by corporations. OTP inverts this model: **the protocol and execution are owned by the user.**
+**Result:** There is no reliable, open, verifiable way to detect AI-generated text in the wild.
 
-- **Not a hosted SaaS.** OTP is software you run, not a service you call. No media is ever uploaded to a central server.
-- **Not a content moderator.** OTP scores authenticity, not legality. It cannot be weaponized for censorship.
-- **Not a black box.** Every score is explainable. If an agent detects synthesis artifacts, it shows you what it found.
-- **Not a legal oracle.** OTP scores are probabilistic attestations, not admissible evidence. Communities use them as a baseline for discussion, not as fact.
+## Our Approach
 
-## Repository Structure
+OTP pursues 100% accuracy through:
 
-This repository is the core implementation of OTP:
+1. **Multi-signal analysis.** Perplexity, burstiness, entropy patterns, linguistic markers, semantic consistency, and more.
+2. **Comprehensive benchmarking.** Systematic evaluation across all major LLMs (OpenAI, Anthropic, Google, Meta, Open-source).
+3. **Transparent methodology.** Every detection signal is explained. No black-box neural networks without interpretability.
+4. **Open datasets.** All training and test data are publicly available for community auditing.
+5. **Reproducible results.** All code, metrics, and results are published in peer-review format.
 
-- **`AGENTS.md`** — The authoritative technical contract and Local-First specification.
-- **`shared/`** — Contract-first schemas, Redis/IPC logic, and scoring ensemble.
-- **`agents/`** — Orchestrator, Heuristics, Provenance, and Web Consensus agents
-- **`tests/`** — Comprehensive unit and integration tests (60+ tests, 58%+ coverage)
+## What's In This Repository
 
-## Contributing Guidelines
+- **`SPECIFICATION.md`** — The authoritative technical specification for 100% accuracy.
+- **`RESEARCH_ROADMAP.md`** — Our research priorities and validation methodology.
+- **`DATASETS.md`** — Data collection, annotation, and benchmark protocols.
+- **`ALGORITHMS.md`** — Detailed signal descriptions and scoring logic.
 
-This repository is maintained for public open-source collaboration:
+## Why Open?
 
-- **`AGENTS.md`** is the authoritative technical contract.
-- **`CONTRIBUTING.md`** defines the quality gate for all pull requests.
-- **`CODE_OF_CONDUCT.md`** defines collaboration behavior expectations.
-- **`SECURITY.md`** defines responsible vulnerability disclosure.
-- **GitHub Issues** and `.github/project/BACKLOG.md` track the Phase 1 execution model.
+Text detection is a **scientific problem**, not a product problem. It requires:
 
-## Current Implementation Status
+- Open data for validation
+- Reproducible methodology
+- Peer review and scrutiny
+- Community collaboration across institutions
 
-**Phase 1 Tracks**: 1-4 Complete ✅ | Track 5 Ready to Finalize
+We are publishing this as open-source to ensure the findings benefit society, not a single company or service.
+
+## Current Status
+
+**Phase 1:** Research and specification. We are defining the 100% accuracy target through systematic analysis of LLM outputs and human text.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for collaboration guidelines.
+
+## License
+
+MIT. See [LICENSE](LICENSE) for details.
 
 - ✅ **Track 1 (Orchestrator)**: Per-agent timeouts, degraded-mode logic, edge-case coverage
 - ✅ **Track 2 (Shared)**: Routing matrix, scoring verdict boundaries, confidence discounting
