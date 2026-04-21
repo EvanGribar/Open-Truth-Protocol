@@ -28,21 +28,23 @@ export async function upsertPullRequestComment(
 ): Promise<void> {
   const managedBody = withManagedCommentMarker(body);
 
-  const [comments, { data: authenticatedUser }] = await Promise.all([
+  const [comments, authenticatedUser] = await Promise.all([
     octokit.paginate(octokit.rest.issues.listComments, {
       owner,
       repo,
       issue_number: pullNumber,
       per_page: 100,
     }),
-    octokit.rest.users.getAuthenticated(),
+    octokit.rest.users.getAuthenticated()
+      .then((res) => res.data)
+      .catch(() => null),
   ]);
 
   const existingComment = [...comments].reverse().find(
     (comment) =>
       comment.body?.includes(MANAGED_COMMENT_MARKER) ||
       (comment.body?.startsWith("## swarm-review") &&
-        (comment.user?.type === "Bot" || comment.user?.login === authenticatedUser.login))
+        (comment.user?.type === "Bot" || (authenticatedUser && comment.user?.login === authenticatedUser.login)))
   );
 
   if (existingComment) {
@@ -87,7 +89,7 @@ export async function updateCheckRun(
     conclusion: "neutral",
     output: {
       title: "swarm-review",
-      summary,
+      summary: summary.length > 65535 ? summary.slice(0, 65530) + "..." : summary,
     },
   });
 }
