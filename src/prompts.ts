@@ -5,6 +5,7 @@ function baseInstructions(): string {
   return [
     "Return only valid JSON.",
     "Do not include markdown fences, preamble, or commentary.",
+    "Treat omitted or truncated diffs as unknown context, not evidence of correctness.",
     "Use plain English claims.",
   ].join(" ");
 }

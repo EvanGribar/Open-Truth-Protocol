@@ -6,14 +6,26 @@ import { loadSwarmConfig } from "./config.js";
 import { runDebateRounds } from "./agents/debate.js";
 import { runReviewRound } from "./agents/review.js";
 import { synthesizePrincipalSummary } from "./agents/principal.js";
-import { upsertPullRequestComment, updateCheckRun } from "./github.js";
+import { upsertPullRequestComment, updateCheckRun, parsePositiveInteger } from "./github.js";
 import { DEFAULT_ANTHROPIC_MODEL } from "./llm.js";
 import { renderDebateTranscriptMarkdown } from "./format.js";
 
 function readInput(name: string): string | undefined {
-  const inputName = `INPUT_${name.replace(/-/g, "_").toUpperCase()}`;
-  const value = process.env[inputName]?.trim() ?? process.env[name.replace(/-/g, "_").toUpperCase()]?.trim();
-  return value && value.length > 0 ? value : undefined;
+  const candidates = [
+    `INPUT_${name.toUpperCase()}`,
+    `INPUT_${name.replace(/-/g, "_").toUpperCase()}`,
+    name.toUpperCase(),
+    name.replace(/-/g, "_").toUpperCase(),
+  ];
+
+  for (const candidate of candidates) {
+    const value = process.env[candidate]?.trim();
+    if (value && value.length > 0) {
+      return value;
+    }
+  }
+
+  return undefined;
 }
 
 function resolveRepository(): { owner: string; repo: string } {
@@ -33,27 +45,32 @@ function resolveRepository(): { owner: string; repo: string } {
 async function resolvePullRequestNumber(): Promise<number> {
   const eventPath = process.env.GITHUB_EVENT_PATH;
   if (eventPath && existsSync(eventPath)) {
-    const eventPayload = JSON.parse(await readFile(eventPath, "utf8")) as {
-      pull_request?: { number?: number };
-      issue?: { number?: number };
-    };
+    try {
+      const eventPayload = JSON.parse(await readFile(eventPath, "utf8")) as {
+        pull_request?: { number?: number };
+        issue?: { number?: number };
+      };
 
-    const pullNumber = eventPayload.pull_request?.number ?? eventPayload.issue?.number;
-    if (typeof pullNumber === "number") {
-      return pullNumber;
+      const pullNumber = eventPayload.pull_request?.number ?? eventPayload.issue?.number;
+      if (typeof pullNumber === "number" && Number.isSafeInteger(pullNumber) && pullNumber > 0) {
+        return pullNumber;
+      }
+    } catch {
+      // Ignore malformed event payloads and fall back to explicit inputs.
     }
   }
 
-  const fallback = readInput("pull-number") ?? process.env.PULL_NUMBER;
+  const fallback = readInput("pull-number");
   if (fallback) {
-    const parsed = Number(fallback);
-    if (Number.isFinite(parsed)) {
+    const parsed = parsePositiveInteger(fallback);
+    if (parsed !== undefined) {
       return parsed;
     }
   }
 
   throw new Error("Unable to resolve the pull request number from the GitHub event payload.");
 }
+
 
 async function main(): Promise<void> {
   const githubToken = readInput("github-token") ?? process.env.GITHUB_TOKEN;

@@ -16,10 +16,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build action bundle
+        run: |
+          npm ci
+          npm run build
+
+      - name: Skip swarm-review when API key is missing
+        if: ${{ secrets.ANTHROPIC_API_KEY == '' }}
+        run: echo "Skipping swarm-review-example because ANTHROPIC_API_KEY is not configured."
+
       - name: Run swarm-review
+        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
         uses: ./
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           anthropic-model: claude-3-5-sonnet-latest
           config-path: .swarm.yml
