@@ -1,10 +1,27 @@
 {
   "name": "swarm-review",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
+  "description": "GitHub Action that runs a multi-agent pull request review swarm with structured debate and principal synthesis.",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EvanGribar/Swarm-Review.git"
+  },
+  "homepage": "https://github.com/EvanGribar/Swarm-Review#readme",
+  "bugs": {
+    "url": "https://github.com/EvanGribar/Swarm-Review/issues"
+  },
+  "keywords": [
+    "github-action",
+    "pull-request",
+    "code-review",
+    "llm",
+    "ai-agents",
+    "anthropic"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",

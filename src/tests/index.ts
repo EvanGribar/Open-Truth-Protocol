@@ -1,3 +1,7 @@
 import "./config.test.js";
+import "./agents.debate.test.js";
+import "./agents.principal.test.js";
+import "./agents.review.test.js";
+import "./agents.shared.test.js";
 import "./format.test.js";
 import "./llm.test.js";
