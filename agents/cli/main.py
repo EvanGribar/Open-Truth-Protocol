@@ -14,33 +14,28 @@ from shared.observability import get_logger
 logger = get_logger("cli")
 
 
-async def verify_file(file_path: str, api_url: str) -> None:
+def _resolve_local_file(file_path: str) -> tuple[str, int, str]:
     path = Path(file_path)
     if not path.exists():
         print(f"Error: File not found: {file_path}")
         sys.exit(1)
 
-    # In a real CLI, we would upload to S3 first.
-    # For Phase 1 MVP, we simulate or assume the file is already in S3 or provided via local path
-    # if the API supports it. But AGENTS.md says "Agents... pull from S3".
-
-    # Let's assume for now the user has uploaded it or we use a mock blob_uri
-    # Actually, the Orchestrator.create_job handles normalization to S3.
-    # So the CLI should just send the media to the API Gateway.
-
-    # Wait, Orchestrator main.py has an /ingest endpoint.
-    # It takes media_type, media_size_bytes, blob_uri, etc.
-    # It seems the API expects the blob to ALREADY be in S3.
-
-    print(f"Verifying {path.name}...")
-
-    # Mocking S3 upload for now as this is a Phase 1 MVP CLI
-    blob_uri = f"s3://otp-intake/cli-upload/{path.name}"
-
-    # Detect media type from file extension
     media_type, _ = mimetypes.guess_type(path)
     if not media_type:
         media_type = "application/octet-stream"
+
+    return path.name, path.stat().st_size, media_type
+
+
+async def verify_file(file_name: str, file_size_bytes: int, media_type: str, api_url: str) -> None:
+    # For this MVP CLI, we submit ingest metadata and a placeholder blob URI.
+    # In the Local-First architecture, orchestrator-side normalization stores media
+    # in local data paths per AGENTS.md §3.4.
+
+    print(f"Verifying {file_name}...")
+
+    # Mocking S3 upload for now as this is a Phase 1 MVP CLI
+    blob_uri = f"s3://otp-intake/cli-upload/{file_name}"
 
     timeout_seconds = 60
     for prefix, timeout in WORKFLOW_TIMEOUTS.items():
@@ -55,7 +50,7 @@ async def verify_file(file_path: str, api_url: str) -> None:
                 f"{api_url}/ingest",
                 json={
                     "media_type": media_type,
-                    "media_size_bytes": path.stat().st_size,
+                    "media_size_bytes": file_size_bytes,
                     "blob_uri": blob_uri,
                     "source_url": "cli://local-file",
                     "submitted_by": "otp-verify-cli",
@@ -103,10 +98,12 @@ def main() -> None:
         sys.exit(1)
 
     file_path = sys.argv[1]
+    file_name, file_size_bytes, media_type = _resolve_local_file(file_path)
+
     settings = get_settings()
     api_url = f"http://{settings.otp_api_host}:{settings.otp_api_port}"
 
-    asyncio.run(verify_file(file_path, api_url))
+    asyncio.run(verify_file(file_name, file_size_bytes, media_type, api_url))
 
 
 if __name__ == "__main__":

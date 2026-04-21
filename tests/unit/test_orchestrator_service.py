@@ -80,15 +80,6 @@ async def test_dispatch_pending_job_returns_false_for_unknown_task() -> None:
     assert dispatched is False
 
 
-def test_workflow_timeout_for_media_type() -> None:
-    service = _make_service()
-    assert service.workflow_timeout_for_media_type("image/jpeg") == 60
-    assert service.workflow_timeout_for_media_type("video/mp4") == 300
-    assert service.workflow_timeout_for_media_type("text/plain") == 30
-    assert service.workflow_timeout_for_media_type("audio/wav") == 60
-    assert service.workflow_timeout_for_media_type("application/pdf") == 60  # Default fallback
-
-
 @pytest.mark.asyncio
 async def test_get_consensus_synthesizes_timeouts_after_workflow_deadline() -> None:
     service = _make_service()

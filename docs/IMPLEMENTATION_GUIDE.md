@@ -18,11 +18,10 @@
 ## Current Status (As of 2026-04-17)
 
 ### ✅ Completed (Track 1-2)
-- Orchestrator core logic (dispatch, collect, timeout handling)
-- Scoring model with all verdict boundaries
+- Local-first orchestrator (dispatch, collect, timeout handling)
+- Scoring ensemble with all verdict boundaries
 - Comprehensive test coverage (60 tests, 58% coverage)
-- Routing matrix validated for all media types
-- GitHub issues roadmap created
+- Local data normalization and routing matrix
 
 ### ⚠️ In Progress (Track 3 Ready to Start)
 - **Heuristics Agent**: Text signal pipeline (perplexity, burstiness)
@@ -200,17 +199,11 @@ pre-commit install
 Start Kafka, Redis, S3, Temporal, and all agents:
 
 ```bash
-# Terminal 1: Start infrastructure
-docker compose up -d
+# Terminal 1: Start Redis for task dispatch
+docker compose -f docker/docker-compose.infra.yml up -d redis
 
 # Verify services are running
 docker compose ps
-
-# Check Temporal UI
-open http://localhost:8088
-
-# Check Prometheus metrics
-open http://localhost:9090
 ```
 
 ### Running Tests Locally
@@ -331,20 +324,22 @@ def _analyze_text(text: str) -> dict[str, object]:
 # agents/provenance/analyzer.py
 from python_docx import Document
 from datetime import datetime
+import os
 
-def analyze(media_type: str, blob_uri: str = "") -> dict[str, object]:
+def analyze(media_type: str, file_path: str = "") -> dict[str, object]:
     """Analyze media provenance per AGENTS §5.2."""
     
     if media_type.startswith("text/"):
-        return _analyze_text_metadata(blob_uri)
+        return _analyze_text_metadata(file_path)
     
     # ... image/video/audio paths ...
 
-def _analyze_text_metadata(blob_uri: str) -> dict[str, object]:
+def _analyze_text_metadata(file_path: str) -> dict[str, object]:
     """Text path: extract document metadata per AGENTS §5.2."""
     
-    # Download from S3
-    doc_bytes = _download_from_s3(blob_uri)
+    # Read from local filesystem
+    with open(file_path, "rb") as f:
+        doc_bytes = f.read()
     
     # Try DOCX first
     if _is_docx(doc_bytes):
@@ -377,19 +372,20 @@ import hashlib
 
 _cache: redis.Redis | None = None
 
-def analyze(media_type: str, blob_uri: str = "") -> dict[str, object]:
+def analyze(media_type: str, file_path: str = "") -> dict[str, object]:
     """Analyze per AGENTS §5.4 with cache per AGENTS §5.4."""
     
     if media_type.startswith("text/"):
-        return _analyze_text_with_cache(blob_uri)
+        return _analyze_text_with_cache(file_path)
 
-def _analyze_text_with_cache(blob_uri: str) -> dict[str, object]:
+def _analyze_text_with_cache(file_path: str) -> dict[str, object]:
     """Text: check cache first, then do lookup per AGENTS §5.4."""
     
     cache = _get_cache()
     
-    # Download and hash
-    content = _download_from_s3(blob_uri)
+    # Read local file and hash
+    with open(file_path, "rb") as f:
+        content = f.read()
     content_hash = hashlib.sha256(content).hexdigest()
     
     # Check cache (24h TTL per AGENTS §5.4)
@@ -398,7 +394,6 @@ def _analyze_text_with_cache(blob_uri: str) -> dict[str, object]:
     
     if cached:
         logger.info("cache_hit", cache_key=cache_key)
-        metrics.cache_hits.inc()  # Prometheus per AGENTS §4.4
         return json.loads(cached)
     
     # Cache miss - do lookup (when APIs implemented)
@@ -472,7 +467,7 @@ When reviewing a PR, verify:
 ### Architecture
 - [ ] Code follows AGENTS.md contract exactly
 - [ ] Output schema matches specification
-- [ ] No agent calls another agent directly (Kafka only)
+- [ ] No agent calls another agent directly (Orchestrator dispatch only)
 - [ ] All external APIs have retry logic
 
 ### Testing
