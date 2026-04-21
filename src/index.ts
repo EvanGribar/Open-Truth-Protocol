@@ -20,9 +20,21 @@ function parsePositiveInteger(value: string): number | undefined {
 }
 
 function readInput(name: string): string | undefined {
-  const inputName = `INPUT_${name.replace(/-/g, "_").toUpperCase()}`;
-  const value = process.env[inputName]?.trim() ?? process.env[name.replace(/-/g, "_").toUpperCase()]?.trim();
-  return value && value.length > 0 ? value : undefined;
+  const candidates = [
+    `INPUT_${name.toUpperCase()}`,
+    `INPUT_${name.replace(/-/g, "_").toUpperCase()}`,
+    name.toUpperCase(),
+    name.replace(/-/g, "_").toUpperCase(),
+  ];
+
+  for (const candidate of candidates) {
+    const value = process.env[candidate]?.trim();
+    if (value && value.length > 0) {
+      return value;
+    }
+  }
+
+  return undefined;
 }
 
 function resolveRepository(): { owner: string; repo: string } {
