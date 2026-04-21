@@ -10,6 +10,15 @@ import { upsertPullRequestComment, updateCheckRun } from "./github.js";
 import { DEFAULT_ANTHROPIC_MODEL } from "./llm.js";
 import { renderDebateTranscriptMarkdown } from "./format.js";
 
+function parsePositiveInteger(value: string): number | undefined {
+  if (!/^\d+$/.test(value)) {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 function readInput(name: string): string | undefined {
   const inputName = `INPUT_${name.replace(/-/g, "_").toUpperCase()}`;
   const value = process.env[inputName]?.trim() ?? process.env[name.replace(/-/g, "_").toUpperCase()]?.trim();
@@ -33,21 +42,25 @@ function resolveRepository(): { owner: string; repo: string } {
 async function resolvePullRequestNumber(): Promise<number> {
   const eventPath = process.env.GITHUB_EVENT_PATH;
   if (eventPath && existsSync(eventPath)) {
-    const eventPayload = JSON.parse(await readFile(eventPath, "utf8")) as {
-      pull_request?: { number?: number };
-      issue?: { number?: number };
-    };
+    try {
+      const eventPayload = JSON.parse(await readFile(eventPath, "utf8")) as {
+        pull_request?: { number?: number };
+        issue?: { number?: number };
+      };
 
-    const pullNumber = eventPayload.pull_request?.number ?? eventPayload.issue?.number;
-    if (typeof pullNumber === "number") {
-      return pullNumber;
+      const pullNumber = eventPayload.pull_request?.number ?? eventPayload.issue?.number;
+      if (typeof pullNumber === "number" && Number.isSafeInteger(pullNumber) && pullNumber > 0) {
+        return pullNumber;
+      }
+    } catch {
+      // Ignore malformed event payloads and fall back to explicit inputs.
     }
   }
 
   const fallback = readInput("pull-number") ?? process.env.PULL_NUMBER;
   if (fallback) {
-    const parsed = Number(fallback);
-    if (Number.isFinite(parsed)) {
+    const parsed = parsePositiveInteger(fallback);
+    if (parsed !== undefined) {
       return parsed;
     }
   }
