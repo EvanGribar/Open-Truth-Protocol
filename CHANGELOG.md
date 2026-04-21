@@ -1,53 +1,58 @@
 # Changelog
 
-All notable changes to this project are documented in this file.
+All notable changes to the Open Truth Protocol project are documented in this file.
 
-The format is based on Keep a Changelog, and this project follows Semantic Versioning.
+## [Project Pivot] April 2026
 
-## [Unreleased]
+### BREAKING CHANGES
+- **Project scope completely refocused** from multi-modal media verification (images, video, audio) to **100% accuracy AI-generated text detection**
+- All legacy agent code (Orchestrator, Provenance, Heuristics, Web Consensus) is archived
+- Repository is now documentation-first, with code to follow
 
 ### Added
-
-- **Heuristics Agent** (AGENTS §5.3): Text signal analysis with perplexity and burstiness computation
-  - Detects LLM-generated text via statistical signatures
-  - Computes mean_perplexity and burstiness metrics
-  - Returns synthetic_probability and confidence scores
-  - Stubs for image/audio/video analysis (Phase 2)
-  - 14 comprehensive unit tests, 100% test pass rate
-
-- **Provenance Agent** (AGENTS §5.2): Document metadata extraction
-  - Analyzes document formats (PLAINTEXT, DOCX, PDF, HTML)
-  - Checks for C2PA cryptographic manifests (stub for Phase 2)
-  - EXIF metadata framework (implementation Phase 2)
-  - Timestamp anomaly detection framework
-  - 12 comprehensive unit tests, 100% test pass rate
-
-- **Web Consensus Agent** (AGENTS §5.4): Cache-backed lookups and registry checks
-  - Text content hashing and cache framework
-  - Perceptual hash generation stubs (Phase 2: real pHash)
-  - 24-hour cache TTL per AGENTS spec
-  - Reverse search framework (APIs Phase 2)
-  - 13 comprehensive unit tests, 100% test pass rate
-
-- **Implementation Plan** at `docs/IMPLEMENTATION_PLAN.md`
-  - Detailed roadmap for remaining Phase 1 and Phase 2 work
-  - TDD patterns and contract-first implementation guidelines
-  - Test organization and mocking strategies
+- **SPECIFICATION.md** — Complete technical specification for 100% accuracy in text detection
+- **RESEARCH_ROADMAP.md** — Four-phase validation roadmap (Q2 2026 → 2027)
+- **DATASETS.md** — Data collection, annotation, and benchmarking protocols
+- **ALGORITHMS.md** — Detailed specifications for 8 core detection signals
+- Multi-signal detection approach: Perplexity, Entropy, Semantic Coherence, Syntactic Uniformity, Burstiness, Linguistic Markers, Word Frequency, Punctuation
 
 ### Changed
+- **README.md** — Completely rewritten to reflect text detection mission
+- **AGENTS.md** — Now serves as project transition document; references new specification files
 
-- Updated `PHASE1_PROGRESS_REPORT.md` with completion status and agent implementation details
-- Overall test coverage increased to 53%+ (target: 45%)
-- Agent test suite: 39 new tests, all passing
+### Removed
+- Active development of image/video/audio detection (moved to future phases)
+- Docker containers for legacy agents (agents/ directory archived)
+- Temporal.io and Kafka infrastructure specifications
 
-### Changed
+### Status
+- Phase 1 (Signal Research): In progress
+- Phase 2 (Ensemble & Tuning): Pending Phase 1 completion
+- Phase 3 (Adversarial Testing): Pending Phase 2 completion
+- Phase 4 (Production): Pending Phase 3 completion
 
-- Improved `degraded_mode` logic in orchestrator service to match AGENTS.md §8:
-  - Now set to true when 2+ agents fail/timeout OR heuristics is inactive
-  - Previously only set when heuristics was inactive
-- Updated README with Phase 1 implementation roadmap snapshot
-- GitHub issue templates for bug, feature, and security reporting flows
-- Pull request template with AGENTS.md contract and benchmark checklist
+### Migration Guide
+Users of the previous version should:
+1. Archive any code depending on legacy agents
+2. Refer to SPECIFICATION.md for the new architecture
+3. See RESEARCH_ROADMAP.md for current development priorities
+
+---
+
+## [2.2] — Local-First Architecture Transition
+- Transitioned from centralized (Kafka + S3) to Local-First (Redis + local storage)
+- Reduced system requirements for local execution
+- Introduced Python Asyncio for orchestration (replacing Temporal.io)
+
+## [2.1] — Multi-Agent Foundation
+- Implemented core 5-agent architecture
+- Added comprehensive test suite (60+ tests, 58%+ coverage)
+- Published initial AGENTS.md specification
+
+## [2.0] — Project Launch
+- Initial open-source release
+- Multi-modal media verification framework (images, video, audio, text)
+- Agent-based distributed architecture
 - Phase 1 backlog workflow document at `.github/project/BACKLOG.md`
 - Temporal workflow worker bootstrap in orchestrator service startup
 - Orchestrator Temporal activities that dispatch pending jobs and collect reports until completion/timeout
