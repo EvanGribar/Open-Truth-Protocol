@@ -134,6 +134,17 @@ npm run build
 npm test
 ```
 
+## Release Process
+
+v0.0.2 is delivered in four stage-specific pull requests so each risk domain is reviewed independently:
+
+1. Stability and safety hardening.
+2. Diff scaling and runtime reliability.
+3. Coverage expansion for key helpers.
+4. Documentation and release metadata.
+
+This keeps reviews focused and makes rollback decisions straightforward.
+
 ## Project Layout
 
 - `src/types.ts`: shared schemas and data contracts.
