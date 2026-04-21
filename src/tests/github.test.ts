@@ -107,4 +107,3 @@ test("parsePositiveInteger accepts only positive integer strings", () => {
   assert.equal(parsePositiveInteger(" 42 "), undefined);
   assert.equal(parsePositiveInteger("9007199254740992"), undefined);
 });
-
