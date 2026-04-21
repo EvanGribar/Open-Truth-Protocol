@@ -2,6 +2,18 @@ import { Octokit } from "@octokit/rest";
 
 import { FileDiffSchema, type FileDiff } from "./types.js";
 
+type DiffFormatOptions = {
+  maxFiles?: number;
+  maxPatchCharsPerFile?: number;
+  maxTotalChars?: number;
+};
+
+const DEFAULT_DIFF_FORMAT_OPTIONS: Required<DiffFormatOptions> = {
+  maxFiles: 80,
+  maxPatchCharsPerFile: 12_000,
+  maxTotalChars: 180_000,
+};
+
 export function createOctokit(token: string): Octokit {
   return new Octokit({
     auth: token,
@@ -34,9 +46,17 @@ export async function fetchPullRequestDiff(
   );
 }
 
-export function formatFileDiffs(files: FileDiff[]): string {
-  return files
-    .map((file) => {
+export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = {}): string {
+  const settings = {
+    ...DEFAULT_DIFF_FORMAT_OPTIONS,
+    ...options,
+  };
+
+  let remainingChars = settings.maxTotalChars;
+  const selectedFiles = files.slice(0, settings.maxFiles);
+  const renderedFiles: string[] = [];
+
+  for (const file of selectedFiles) {
       const header = [
         `### ${file.path}`,
         `status: ${file.status}`,
@@ -47,8 +67,34 @@ export function formatFileDiffs(files: FileDiff[]): string {
         .filter(Boolean)
         .join("\n");
 
-      const patch = file.patch ?? "PATCH UNAVAILABLE";
-      return `${header}\n\n\`\`\`diff\n${patch}\n\`\`\``;
-    })
-    .join("\n\n---\n\n");
+      const rawPatch = file.patch ?? "PATCH UNAVAILABLE";
+      const patchTruncated = rawPatch.length > settings.maxPatchCharsPerFile;
+      const patch = patchTruncated
+        ? `${rawPatch.slice(0, settings.maxPatchCharsPerFile)}\n... [PATCH TRUNCATED]`
+        : rawPatch;
+      const rendered = `${header}\n\n\`\`\`diff\n${patch}\n\`\`\``;
+
+      if (rendered.length > remainingChars) {
+        break;
+      }
+
+      renderedFiles.push(rendered);
+      remainingChars -= rendered.length;
+    }
+
+  const omittedByFileLimit = Math.max(0, files.length - selectedFiles.length);
+  const omittedByCharBudget = Math.max(0, selectedFiles.length - renderedFiles.length);
+  const omittedCount = omittedByFileLimit + omittedByCharBudget;
+
+  const metadata = [
+    "### Diff Budget",
+    `- total_files: ${files.length}`,
+    `- included_files: ${renderedFiles.length}`,
+    `- omitted_files: ${omittedCount}`,
+    `- max_files: ${settings.maxFiles}`,
+    `- max_patch_chars_per_file: ${settings.maxPatchCharsPerFile}`,
+    `- max_total_chars: ${settings.maxTotalChars}`,
+  ].join("\n");
+
+  return [metadata, ...renderedFiles].join("\n\n---\n\n");
 }

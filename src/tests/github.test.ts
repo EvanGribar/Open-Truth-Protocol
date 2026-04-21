@@ -1,0 +1,90 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { upsertPullRequestComment, updateCheckRun } from "../github.js";
+
+type MockComment = {
+  id: number;
+  body?: string;
+  user?: {
+    type?: string;
+  };
+};
+
+function createOctokitMock(comments: MockComment[] = []) {
+  const state = {
+    updated: [] as Array<Record<string, unknown>>,
+    created: [] as Array<Record<string, unknown>>,
+    checks: [] as Array<Record<string, unknown>>,
+  };
+
+  const octokit = {
+    paginate: async () => comments,
+    rest: {
+      issues: {
+        listComments: async () => ({ data: comments }),
+        updateComment: async (args: Record<string, unknown>) => {
+          state.updated.push(args);
+          return { data: {} };
+        },
+        createComment: async (args: Record<string, unknown>) => {
+          state.created.push(args);
+          return { data: {} };
+        },
+      },
+      checks: {
+        update: async (args: Record<string, unknown>) => {
+          state.checks.push(args);
+          return { data: {} };
+        },
+      },
+    },
+  };
+
+  return { octokit: octokit as unknown, state };
+}
+
+test("upsertPullRequestComment updates latest matching swarm comment", async () => {
+  const { octokit, state } = createOctokitMock([
+    { id: 1, body: "## swarm-review\n\nmanual user note", user: { type: "User" } },
+    {
+      id: 2,
+      body: "## swarm-review\n\nexisting",
+      user: { type: "User" },
+    },
+  ]);
+
+  await upsertPullRequestComment(octokit as never, "owner", "repo", 12, "## swarm-review\n\nnew body");
+
+  assert.equal(state.updated.length, 1);
+  assert.equal(state.created.length, 0);
+  assert.equal(state.updated[0]?.comment_id, 2);
+  assert.match(String(state.updated[0]?.body), /new body/);
+});
+
+test("upsertPullRequestComment creates new comment when no swarm comment exists", async () => {
+  const { octokit, state } = createOctokitMock([
+    { id: 1, body: "regular discussion", user: { type: "User" } },
+  ]);
+
+  await upsertPullRequestComment(octokit as never, "owner", "repo", 12, "## swarm-review\n\nnew body");
+
+  assert.equal(state.updated.length, 0);
+  assert.equal(state.created.length, 1);
+  assert.match(String(state.created[0]?.body), /new body/);
+});
+
+test("updateCheckRun ignores non-numeric IDs and updates numeric IDs", async () => {
+  const { octokit, state } = createOctokitMock();
+
+  await updateCheckRun(octokit as never, "owner", "repo", "abc", "summary");
+  await updateCheckRun(octokit as never, "owner", "repo", "1.2", "summary");
+  await updateCheckRun(octokit as never, "owner", "repo", "-3", "summary");
+
+  assert.equal(state.checks.length, 2);
+
+  await updateCheckRun(octokit as never, "owner", "repo", "42", "summary");
+
+  assert.equal(state.checks.length, 3);
+  assert.equal(state.checks[2]?.check_run_id, 42);
+});
