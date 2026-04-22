@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { upsertPullRequestComment, updateCheckRun } from "../github.js";
+import { parsePositiveInteger, upsertPullRequestComment, updateCheckRun } from "../github.js";
 
 type MockComment = {
   id: number;
@@ -92,5 +92,19 @@ test("updateCheckRun ignores non-numeric IDs and updates numeric IDs", async () 
 
   assert.equal(state.checks.length, 1);
   assert.equal(state.checks[0]?.check_run_id, 42);
+});
+
+test("parsePositiveInteger accepts only positive integer strings", () => {
+  assert.equal(parsePositiveInteger("1"), 1);
+  assert.equal(parsePositiveInteger("001"), 1);
+  assert.equal(parsePositiveInteger("42"), 42);
+
+  assert.equal(parsePositiveInteger("0"), undefined);
+  assert.equal(parsePositiveInteger("-1"), undefined);
+  assert.equal(parsePositiveInteger("1.2"), undefined);
+  assert.equal(parsePositiveInteger("abc"), undefined);
+  assert.equal(parsePositiveInteger(""), undefined);
+  assert.equal(parsePositiveInteger(" 42 "), undefined);
+  assert.equal(parsePositiveInteger("9007199254740992"), undefined);
 });
 
