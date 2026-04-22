@@ -1,4 +1,8 @@
 import "./config.test.js";
+import "./agents.debate.test.js";
+import "./agents.principal.test.js";
+import "./agents.review.test.js";
+import "./agents.shared.test.js";
 import "./diff.test.js";
 import "./format.test.js";
 import "./github.test.js";
