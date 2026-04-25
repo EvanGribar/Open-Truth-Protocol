@@ -48,7 +48,7 @@ async function writeActionOutput(name: string, value: string): Promise<void> {
     return;
   }
 
-  await appendFile(outputPath, `${name}=${value}\n`, "utf8");
+  await appendFile(outputPath, `${name}=${value.replace(/\r?\n/g, "%0A")}\n`, "utf8");
 }
 
 async function resolvePullRequestNumber(): Promise<number> {
@@ -79,7 +79,6 @@ async function resolvePullRequestNumber(): Promise<number> {
 
   throw new Error("Unable to resolve the pull request number from the GitHub event payload.");
 }
-
 
 async function main(): Promise<void> {
   const githubToken = readInput("github-token") ?? process.env.GITHUB_TOKEN;

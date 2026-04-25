@@ -1,6 +1,6 @@
 {
   "name": "swarm-review",
-  "version": "0.2.0",
+  "version": "0.1.1",
   "private": true,
   "description": "GitHub Action that runs a multi-agent pull request review swarm with structured debate and principal synthesis.",
   "license": "MIT",
