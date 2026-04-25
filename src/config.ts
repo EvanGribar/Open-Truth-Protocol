@@ -27,6 +27,7 @@ export async function loadSwarmConfig(
     : path.join(workspaceRoot, configPath);
 
   if (!existsSync(resolvedConfigPath)) {
+    console.warn(`Config file not found at ${resolvedConfigPath}, using default configuration.`);
     return DEFAULT_SWARM_CONFIG;
   }
 

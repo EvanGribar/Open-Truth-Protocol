@@ -18,6 +18,12 @@ function waitFor(ms: number): Promise<void> {
   });
 }
 
+function addJitter(ms: number): number {
+  // Add ±25% jitter to avoid thundering herd
+  const jitter = ms * 0.25 * (Math.random() * 2 - 1);
+  return ms + jitter;
+}
+
 function stripMarkdownFences(text: string): string {
   const trimmed = text.trim();
 
@@ -123,7 +129,7 @@ export async function callAnthropic(
       }
 
       if (attempt < MAX_RETRY_ATTEMPTS && retryableFailure) {
-        await waitFor(retryDelayMs);
+        await waitFor(addJitter(retryDelayMs));
         continue;
       }
       throw lastError;

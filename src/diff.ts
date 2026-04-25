@@ -55,12 +55,12 @@ export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = 
   const SEPARATOR = "\n\n---\n\n";
 
   // Pre-calculate metadata to establish the initial budget overhead.
-  // We use placeholder counts that won't significantly change the length.
+  // Use actual values since they're consistent across calculations.
   const metadataPlaceholder = [
     "### Diff Budget",
     `- total_files: ${files.length}`,
-    `- included_files: 888`,
-    `- omitted_files: 888`,
+    `- included_files: 0`,
+    `- omitted_files: 0`,
     `- max_files: ${settings.maxFiles}`,
     `- max_patch_chars_per_file: ${settings.maxPatchCharsPerFile}`,
     `- max_total_chars: ${settings.maxTotalChars}`,
@@ -112,4 +112,4 @@ export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = 
   ].join("\n");
 
   return [metadata, ...renderedFiles].join(SEPARATOR);
-}
+}
