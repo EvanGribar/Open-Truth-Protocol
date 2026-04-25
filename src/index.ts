@@ -80,7 +80,6 @@ async function resolvePullRequestNumber(): Promise<number> {
   throw new Error("Unable to resolve the pull request number from the GitHub event payload.");
 }
 
-
 async function main(): Promise<void> {
   const githubToken = readInput("github-token") ?? process.env.GITHUB_TOKEN;
   const anthropicApiKey = readInput("anthropic-api-key") ?? process.env.ANTHROPIC_API_KEY;
@@ -140,13 +139,13 @@ async function main(): Promise<void> {
       : headlineSummary;
 
   const commentResult = await upsertPullRequestComment(octokit, owner, repo, pullNumber, commentBody);
-  await updateCheckRun(octokit, owner, repo, checkRunId, commentBody);
+  const checkRunUpdated = await updateCheckRun(octokit, owner, repo, checkRunId, commentBody);
 
   await writeActionOutput("pull-number", String(pullNumber));
   await writeActionOutput("output-mode", swarmConfig.output.mode);
   await writeActionOutput("comment-id", String(commentResult.commentId));
   await writeActionOutput("comment-action", commentResult.action);
-  await writeActionOutput("check-run-updated", parsePositiveInteger(checkRunId ?? "") ? "true" : "false");
+  await writeActionOutput("check-run-updated", String(checkRunUpdated));
 
   if (commentResult.commentUrl) {
     await writeActionOutput("comment-url", commentResult.commentUrl);
