@@ -1,6 +1,6 @@
 # Provider configuration (optional)
 # If not specified, falls back to ANTHROPIC_API_KEY environment variable
-# Supported providers: anthropic, openai, openrouter, openclaw, hermes, groq, together, mistral, cohere, perplexity, hyperbolic, custom
+# Supported providers: anthropic, openai, openrouter, openclaw, hermes, groq, together, mistral, cohere, perplexity, hyperbolic, gemini, custom
 provider:
   type: anthropic
   config:
@@ -79,6 +79,13 @@ provider:
 #   config:
 #     apiKey: $HYPERBOLIC_API_KEY
 #     model: meta-llama/Llama-3.3-70B-Instruct
+
+# Alternative: Gemini (Google)
+# provider:
+#   type: gemini
+#   config:
+#     apiKey: $GEMINI_API_KEY
+#     model: gemini-2.0-flash-exp
 
 # Alternative: Custom provider (OpenAI-compatible)
 # provider:

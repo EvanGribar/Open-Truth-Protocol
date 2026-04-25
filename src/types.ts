@@ -97,6 +97,7 @@ export const ProviderTypeSchema = z.enum([
   "cohere",
   "perplexity",
   "hyperbolic",
+  "gemini",
   "custom",
 ]);
 export type ProviderType = z.infer<typeof ProviderTypeSchema>;
@@ -159,6 +160,11 @@ export const HyperbolicConfigSchema = z.object({
   model: z.string().min(1).default("meta-llama/Llama-3.3-70B-Instruct"),
 });
 
+export const GeminiConfigSchema = z.object({
+  apiKey: z.string().min(1),
+  model: z.string().min(1).default("gemini-2.0-flash-exp"),
+});
+
 export const CustomProviderConfigSchema = z.object({
   apiKey: z.string().min(1),
   model: z.string().min(1),
@@ -178,6 +184,7 @@ export const ProviderConfigSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("cohere"), config: CohereConfigSchema }),
   z.object({ type: z.literal("perplexity"), config: PerplexityConfigSchema }),
   z.object({ type: z.literal("hyperbolic"), config: HyperbolicConfigSchema }),
+  z.object({ type: z.literal("gemini"), config: GeminiConfigSchema }),
   z.object({ type: z.literal("custom"), config: CustomProviderConfigSchema }),
 ]);
 
@@ -252,6 +259,7 @@ export type MistralConfig = z.infer<typeof MistralConfigSchema>;
 export type CohereConfig = z.infer<typeof CohereConfigSchema>;
 export type PerplexityConfig = z.infer<typeof PerplexityConfigSchema>;
 export type HyperbolicConfig = z.infer<typeof HyperbolicConfigSchema>;
+export type GeminiConfig = z.infer<typeof GeminiConfigSchema>;
 export type CustomProviderConfig = z.infer<typeof CustomProviderConfigSchema>;
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>;
 

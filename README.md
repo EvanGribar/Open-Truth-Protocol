@@ -304,6 +304,20 @@ provider:
 
 **Note:** Hyperbolic specializes in affordable on-demand GPU inference. Check their [REST API documentation](https://docs.hyperbolic.xyz/docs/rest-api) for available models.
 
+### Gemini
+
+Gemini is Google's family of multimodal AI models, including the experimental Gemini 2.0 Flash model with fast inference and strong reasoning capabilities.
+
+```yaml
+provider:
+  type: gemini
+  config:
+    apiKey: $GEMINI_API_KEY
+    model: gemini-2.0-flash-exp
+```
+
+**Note:** Gemini uses the Google AI API with the API key passed as a query parameter. Visit [Google AI Studio](https://makersuite.google.com/app/apikey) to get an API key and check their [documentation](https://ai.google.dev/gemini-api/docs) for available models.
+
 ### Custom Provider
 
 For any OpenAI-compatible API:

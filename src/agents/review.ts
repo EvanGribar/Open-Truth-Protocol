@@ -74,6 +74,11 @@ export async function runReviewRound(input: ReviewRoundInput): Promise<Finding[]
             type: "hyperbolic",
             config: { ...input.providerConfig.config, model: agent.model },
           };
+        } else if (input.providerConfig.type === "gemini") {
+          providerConfig = {
+            type: "gemini",
+            config: { ...input.providerConfig.config, model: agent.model },
+          };
         } else if (input.providerConfig.type === "custom") {
           providerConfig = {
             type: "custom",

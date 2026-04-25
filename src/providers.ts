@@ -11,6 +11,7 @@ import type {
   CohereConfig,
   PerplexityConfig,
   HyperbolicConfig,
+  GeminiConfig,
   CustomProviderConfig,
   ProviderConfig,
 } from "./types.js";
@@ -825,6 +826,76 @@ class HyperbolicProvider implements LLMProvider {
   }
 }
 
+class GeminiProvider implements LLMProvider {
+  constructor(private config: GeminiConfig) {}
+
+  async call(system: string, prompt: string, maxTokens = 4096): Promise<string> {
+    const endpoint = "https://generativelanguage.googleapis.com/v1beta/chat/completions";
+    let lastError: Error | undefined;
+
+    for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt += 1) {
+      const abortController = new AbortController();
+      const timeout = setTimeout(() => abortController.abort(), DEFAULT_REQUEST_TIMEOUT_MS);
+      let retryableFailure = false;
+      let retryDelayMs = 500 * 2 ** (attempt - 1);
+
+      try {
+        const response = await fetch(`${endpoint}?key=${this.config.apiKey}`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            model: this.config.model,
+            max_tokens: maxTokens,
+            temperature: 0.2,
+            messages: [
+              { role: "system", content: system },
+              { role: "user", content: prompt },
+            ],
+          }),
+          signal: abortController.signal,
+        });
+
+        if (!response.ok) {
+          const retryAfterHeader = response.headers.get("retry-after");
+          const retryAfterSeconds = retryAfterHeader ? Number(retryAfterHeader) : NaN;
+          if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+            retryDelayMs = Math.max(retryDelayMs, retryAfterSeconds * 1000);
+          }
+
+          const error = new Error(
+            `Gemini request failed with ${response.status}: ${await response.text()}`
+          );
+          retryableFailure = shouldRetry(response.status);
+          throw error;
+        }
+
+        const payload: {
+          choices?: Array<{ message?: { content?: string } }>;
+        } = await response.json();
+
+        return payload.choices?.[0]?.message?.content ?? "";
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        if (lastError.name === "AbortError" || lastError instanceof TypeError) {
+          retryableFailure = true;
+        }
+
+        if (attempt < MAX_RETRY_ATTEMPTS && retryableFailure) {
+          await waitFor(addJitter(retryDelayMs));
+          continue;
+        }
+        throw lastError;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    throw lastError ?? new Error("Gemini request failed unexpectedly.");
+  }
+}
+
 class CustomProvider implements LLMProvider {
   constructor(private config: CustomProviderConfig) {}
 
@@ -942,6 +1013,8 @@ export function createProvider(config: ProviderConfig): LLMProvider {
       return new PerplexityProvider(config.config);
     case "hyperbolic":
       return new HyperbolicProvider(config.config);
+    case "gemini":
+      return new GeminiProvider(config.config);
     case "custom":
       return new CustomProvider(config.config);
     default:
