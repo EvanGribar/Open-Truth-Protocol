@@ -59,8 +59,8 @@ export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = 
   const metadataPlaceholder = [
     "### Diff Budget",
     `- total_files: ${files.length}`,
-    `- included_files: 0`,
-    `- omitted_files: 0`,
+    `- included_files: ${Math.min(files.length, settings.maxFiles)}`,
+    `- omitted_files: ${files.length}`,
     `- max_files: ${settings.maxFiles}`,
     `- max_patch_chars_per_file: ${settings.maxPatchCharsPerFile}`,
     `- max_total_chars: ${settings.maxTotalChars}`,

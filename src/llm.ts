@@ -19,8 +19,8 @@ function waitFor(ms: number): Promise<void> {
 }
 
 function addJitter(ms: number): number {
-  // Add ±25% jitter to avoid thundering herd
-  const jitter = ms * 0.25 * (Math.random() * 2 - 1);
+  // Add 0-25% jitter to avoid thundering herd while respecting minimum wait times
+  const jitter = ms * 0.25 * Math.random();
   return ms + jitter;
 }
 
