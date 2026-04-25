@@ -1,6 +1,6 @@
-import { DEFAULT_ANTHROPIC_MODEL } from "../llm.js";
+import { DEFAULT_ANTHROPIC_MODEL, DEFAULT_API_ENDPOINT } from "../llm.js";
 import { buildDebatePrompt } from "../prompts.js";
-import type { AgentConfig, DebateTranscript, FileDiff, Finding } from "../types.js";
+import type { AgentConfig, DebateTranscript, FileDiff, Finding, DiffConfig } from "../types.js";
 import { runAgentFindingRound } from "./shared.js";
 
 export type DebateRoundInput = {
@@ -11,6 +11,8 @@ export type DebateRoundInput = {
   apiKey: string;
   model?: string;
   minConfidence: number;
+  apiEndpoint?: string;
+  diffConfig?: DiffConfig;
 };
 
 export async function runDebateRounds(input: DebateRoundInput): Promise<DebateTranscript> {
@@ -34,10 +36,11 @@ export async function runDebateRounds(input: DebateRoundInput): Promise<DebateTr
           apiKey: input.apiKey,
           model: agent.model ?? input.model ?? DEFAULT_ANTHROPIC_MODEL,
           system,
-          prompt: buildDebatePrompt(agent, input.diff, currentTranscript, debateRound),
+          prompt: buildDebatePrompt(agent, input.diff, currentTranscript, debateRound, input.diffConfig),
           agentName: agent.name,
           idPrefix: `debate-${debateRound}-${agent.name}`,
           minConfidence: input.minConfidence,
+          apiEndpoint: input.apiEndpoint ?? DEFAULT_API_ENDPOINT,
         })
       )
     );

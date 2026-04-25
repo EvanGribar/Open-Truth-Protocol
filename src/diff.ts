@@ -1,17 +1,14 @@
 import { Octokit } from "@octokit/rest";
 
-import { FileDiffSchema, type FileDiff } from "./types.js";
+import { FileDiffSchema, type DiffConfig, type FileDiff } from "./types.js";
 
-type DiffFormatOptions = {
-  maxFiles?: number;
-  maxPatchCharsPerFile?: number;
-  maxTotalChars?: number;
-};
+type DiffFormatOptions = DiffConfig;
 
 const DEFAULT_DIFF_FORMAT_OPTIONS: Required<DiffFormatOptions> = {
   maxFiles: 80,
   maxPatchCharsPerFile: 12_000,
   maxTotalChars: 180_000,
+  excludePatterns: [],
 };
 
 export function createOctokit(token: string): Octokit {
@@ -46,13 +43,33 @@ export async function fetchPullRequestDiff(
   );
 }
 
-export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = {}): string {
+function matchesAnyPattern(path: string, patterns: string[]): boolean {
+  if (patterns.length === 0) {
+    return false;
+  }
+  
+  for (const pattern of patterns) {
+    const regex = new RegExp(pattern);
+    if (regex.test(path)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+export function formatFileDiffs(files: FileDiff[], options?: Partial<DiffFormatOptions>): string {
   const settings = {
     ...DEFAULT_DIFF_FORMAT_OPTIONS,
     ...options,
   };
 
   const SEPARATOR = "\n\n---\n\n";
+
+  // Filter out excluded files
+  const filteredFiles = files.filter(
+    (file) => !matchesAnyPattern(file.path, settings.excludePatterns)
+  );
 
   // Pre-calculate metadata to establish the initial budget overhead.
   // We use placeholder counts that won't significantly change the length.
@@ -67,7 +84,7 @@ export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = 
   ].join("\n");
 
   let remainingChars = settings.maxTotalChars - metadataPlaceholder.length - SEPARATOR.length;
-  const selectedFiles = files.slice(0, settings.maxFiles);
+  const selectedFiles = filteredFiles.slice(0, settings.maxFiles);
   const renderedFiles: string[] = [];
 
   for (const file of selectedFiles) {
@@ -97,19 +114,21 @@ export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = 
     remainingChars -= rendered.length + SEPARATOR.length;
   }
 
-  const omittedByFileLimit = Math.max(0, files.length - selectedFiles.length);
+  const omittedByFileLimit = Math.max(0, filteredFiles.length - selectedFiles.length);
   const omittedByCharBudget = Math.max(0, selectedFiles.length - renderedFiles.length);
-  const omittedCount = omittedByFileLimit + omittedByCharBudget;
+  const omittedByPatterns = files.length - filteredFiles.length;
+  const omittedCount = omittedByFileLimit + omittedByCharBudget + omittedByPatterns;
 
   const metadata = [
     "### Diff Budget",
     `- total_files: ${files.length}`,
     `- included_files: ${renderedFiles.length}`,
     `- omitted_files: ${omittedCount}`,
+    `- excluded_by_patterns: ${omittedByPatterns}`,
     `- max_files: ${settings.maxFiles}`,
     `- max_patch_chars_per_file: ${settings.maxPatchCharsPerFile}`,
     `- max_total_chars: ${settings.maxTotalChars}`,
   ].join("\n");
 
   return [metadata, ...renderedFiles].join(SEPARATOR);
-}
+}

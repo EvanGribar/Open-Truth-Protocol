@@ -7,6 +7,7 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 90_000;
 const MAX_RETRY_ATTEMPTS = 3;
 
 export const DEFAULT_ANTHROPIC_MODEL = "claude-3-5-sonnet-latest";
+export const DEFAULT_API_ENDPOINT = ANTHROPIC_MESSAGES_ENDPOINT;
 
 function shouldRetry(statusCode: number): boolean {
   return statusCode === 408 || statusCode === 409 || statusCode === 429 || statusCode >= 500;
@@ -63,7 +64,8 @@ export async function callAnthropic(
   model: string,
   system: string,
   prompt: string,
-  maxTokens = 4096
+  maxTokens = 4096,
+  apiEndpoint = DEFAULT_API_ENDPOINT
 ): Promise<string> {
   let lastError: Error | undefined;
 
@@ -74,7 +76,7 @@ export async function callAnthropic(
     let retryDelayMs = 500 * 2 ** (attempt - 1);
 
     try {
-      const response = await fetch(ANTHROPIC_MESSAGES_ENDPOINT, {
+      const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -140,9 +142,10 @@ export async function callAnthropicStructured<T>(
   model: string,
   system: string,
   prompt: string,
-  schema: z.ZodType<T>
+  schema: z.ZodType<T>,
+  apiEndpoint = DEFAULT_API_ENDPOINT
 ): Promise<T> {
-  const rawText = await callAnthropic(apiKey, model, system, prompt);
+  const rawText = await callAnthropic(apiKey, model, system, prompt, 4096, apiEndpoint);
   const jsonText = extractJsonText(rawText);
   const parsed = JSON.parse(jsonText) as unknown;
   return schema.parse(parsed);

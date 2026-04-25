@@ -12,6 +12,9 @@ inputs:
     description: Model name to use for all agent calls.
     required: false
     default: claude-3-5-sonnet-latest
+  api-endpoint:
+    description: Custom API endpoint for Anthropic-compatible providers (e.g., OpenRouter, local LLM).
+    required: false
   config-path:
     description: Path to the swarm configuration file.
     required: false

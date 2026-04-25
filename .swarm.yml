@@ -30,3 +30,9 @@ principal:
 
 output:
   mode: outcome
+
+diff:
+  maxFiles: 80
+  maxPatchCharsPerFile: 12000
+  maxTotalChars: 180000
+  excludePatterns: []

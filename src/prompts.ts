@@ -1,5 +1,5 @@
 import { formatFileDiffs } from "./diff.js";
-import type { AgentConfig, DebateTranscript, FileDiff, PrincipalConfig } from "./types.js";
+import type { AgentConfig, DebateTranscript, FileDiff, PrincipalConfig, DiffConfig } from "./types.js";
 
 function baseInstructions(): string {
   return [
@@ -10,11 +10,11 @@ function baseInstructions(): string {
   ].join(" ");
 }
 
-export function buildReviewPrompt(agent: AgentConfig, diff: FileDiff[]): string {
+export function buildReviewPrompt(agent: AgentConfig, diff: FileDiff[], diffConfig?: DiffConfig): string {
   return [
     `Agent name: ${agent.name}`,
     `Mandate: ${agent.mandate}`,
-    `Full diff:\n${formatFileDiffs(diff)}`,
+    `Full diff:\n${formatFileDiffs(diff, diffConfig)}`,
     `Instructions: ${baseInstructions()} Return a JSON array of findings that match the swarm contract. Include id, agent, severity, file, line, claim, confidence, and optional rebuttal_to.`,
   ].join("\n\n");
 }
@@ -23,13 +23,14 @@ export function buildDebatePrompt(
   agent: AgentConfig,
   diff: FileDiff[],
   transcript: DebateTranscript,
-  debateRound: number
+  debateRound: number,
+  diffConfig?: DiffConfig
 ): string {
   return [
     `Agent name: ${agent.name}`,
     `Mandate: ${agent.mandate}`,
     `Debate round: ${debateRound}`,
-    `Full diff:\n${formatFileDiffs(diff)}`,
+    `Full diff:\n${formatFileDiffs(diff, diffConfig)}`,
     `Prior transcript:\n${JSON.stringify(transcript, null, 2)}`,
     `Instructions: ${baseInstructions()} Return a JSON array of new findings or rebuttals for this round. Each finding should target the existing transcript when relevant via rebuttal_to.`,
   ].join("\n\n");

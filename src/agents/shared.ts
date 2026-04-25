@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { callAnthropicStructured, DEFAULT_ANTHROPIC_MODEL, normalizeFinding } from "../llm.js";
+import { callAnthropicStructured, DEFAULT_ANTHROPIC_MODEL, DEFAULT_API_ENDPOINT, normalizeFinding } from "../llm.js";
 import { RawFindingSchema, type Finding, type RawFinding } from "../types.js";
 
 const RawFindingArraySchema = z.array(RawFindingSchema);
@@ -13,6 +13,7 @@ export type AgentRoundOptions = {
   agentName: string;
   idPrefix: string;
   minConfidence: number;
+  apiEndpoint?: string;
 };
 
 export async function runAgentFindingRound(options: AgentRoundOptions): Promise<Finding[]> {
@@ -21,7 +22,8 @@ export async function runAgentFindingRound(options: AgentRoundOptions): Promise<
     options.model || DEFAULT_ANTHROPIC_MODEL,
     options.system,
     options.prompt,
-    RawFindingArraySchema
+    RawFindingArraySchema,
+    options.apiEndpoint || DEFAULT_API_ENDPOINT
   );
 
   return rawFindings

@@ -76,6 +76,15 @@ export const PrincipalConfigSchema = z.object({
   mandate: z.string().min(1).default(DEFAULT_PRINCIPAL_MANDATE),
 });
 
+export const DiffConfigSchema = z.object({
+  maxFiles: z.number().int().positive().default(80),
+  maxPatchCharsPerFile: z.number().int().positive().default(12_000),
+  maxTotalChars: z.number().int().positive().default(180_000),
+  excludePatterns: z.array(z.string()).default([]),
+});
+
+export type DiffConfig = z.infer<typeof DiffConfigSchema>;
+
 export const SwarmConfigSchema = z.object({
   agents: z.array(AgentConfigSchema).min(1).default(DEFAULT_AGENTS),
   debate: DebateConfigSchema.default(DEFAULT_DEBATE_CONFIG),
@@ -85,6 +94,12 @@ export const SwarmConfigSchema = z.object({
       mode: z.enum(["outcome", "full"]).default("outcome"),
     })
     .default({ mode: "outcome" }),
+  diff: DiffConfigSchema.default({
+    maxFiles: 80,
+    maxPatchCharsPerFile: 12_000,
+    maxTotalChars: 180_000,
+    excludePatterns: [],
+  }),
 });
 
 export type DebateConfig = z.infer<typeof DebateConfigSchema>;
