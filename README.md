@@ -104,10 +104,10 @@ output:
   mode: outcome
 
 diff:
-  maxFiles: 80
-  maxPatchCharsPerFile: 12000
-  maxTotalChars: 180000
-  excludePatterns: []
+  max_files: 80
+  max_patch_chars_per_file: 12000
+  max_total_chars: 180000
+  exclude_patterns: []
 ```
 
 ### Output modes
@@ -150,10 +150,10 @@ principal: blocking until this path uses parameterized queries.
 - `debate.min_confidence`: findings below this threshold are filtered out.
 - `principal.mandate`: instructions for the synthesis agent.
 - `output.mode`: controls whether the transcript is included in the PR comment.
-- `diff.maxFiles`: maximum number of files to include in the diff sent to agents.
-- `diff.maxPatchCharsPerFile`: maximum characters per file patch before truncation.
-- `diff.maxTotalChars`: maximum total characters across all files.
-- `diff.excludePatterns`: array of regex patterns to exclude files from review (e.g., `["\\.lock$", "package-lock\\.json"]`).
+- `diff.max_files`: maximum number of files to include in the diff sent to agents.
+- `diff.max_patch_chars_per_file`: maximum characters per file patch before truncation.
+- `diff.max_total_chars`: maximum total characters across all files.
+- `diff.exclude_patterns`: array of regex patterns to exclude files from review (e.g., `["\\.lock$", "package-lock\\.json"]`).
 
 ## Provider Configuration
 

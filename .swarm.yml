@@ -124,7 +124,7 @@ output:
   mode: outcome
 
 diff:
-  maxFiles: 80
-  maxPatchCharsPerFile: 12000
-  maxTotalChars: 180000
-  excludePatterns: []
+  max_files: 80
+  max_patch_chars_per_file: 12000
+  max_total_chars: 180000
+  exclude_patterns: []

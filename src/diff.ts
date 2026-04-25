@@ -5,10 +5,10 @@ import { FileDiffSchema, type DiffConfig, type FileDiff } from "./types.js";
 type DiffFormatOptions = DiffConfig;
 
 const DEFAULT_DIFF_FORMAT_OPTIONS: Required<DiffFormatOptions> = {
-  maxFiles: 80,
-  maxPatchCharsPerFile: 12_000,
-  maxTotalChars: 180_000,
-  excludePatterns: [],
+  max_files: 80,
+  max_patch_chars_per_file: 12_000,
+  max_total_chars: 180_000,
+  exclude_patterns: [],
 };
 
 export function createOctokit(token: string): Octokit {
@@ -43,19 +43,17 @@ export async function fetchPullRequestDiff(
   );
 }
 
-function matchesAnyPattern(path: string, patterns: string[]): boolean {
-  if (patterns.length === 0) {
-    return false;
-  }
-  
-  for (const pattern of patterns) {
-    const regex = new RegExp(pattern);
-    if (regex.test(path)) {
-      return true;
-    }
-  }
-  
-  return false;
+function getExcludeRegexes(patterns: string[]): RegExp[] {
+  return patterns
+    .map((p) => {
+      try {
+        return new RegExp(p);
+      } catch (e) {
+        console.error(`Invalid regex pattern "${p}":`, e);
+        return null;
+      }
+    })
+    .filter((r): r is RegExp => r !== null);
 }
 
 export function formatFileDiffs(files: FileDiff[], options?: Partial<DiffFormatOptions>): string {
@@ -66,9 +64,12 @@ export function formatFileDiffs(files: FileDiff[], options?: Partial<DiffFormatO
 
   const SEPARATOR = "\n\n---\n\n";
 
+  // Pre-compile regex patterns for better performance
+  const excludeRegexes = getExcludeRegexes(settings.exclude_patterns);
+
   // Filter out excluded files
   const filteredFiles = files.filter(
-    (file) => !matchesAnyPattern(file.path, settings.excludePatterns)
+    (file) => !excludeRegexes.some((r) => r.test(file.path))
   );
 
   // Pre-calculate metadata to establish the initial budget overhead.
@@ -78,13 +79,13 @@ export function formatFileDiffs(files: FileDiff[], options?: Partial<DiffFormatO
     `- total_files: ${files.length}`,
     `- included_files: 888`,
     `- omitted_files: 888`,
-    `- max_files: ${settings.maxFiles}`,
-    `- max_patch_chars_per_file: ${settings.maxPatchCharsPerFile}`,
-    `- max_total_chars: ${settings.maxTotalChars}`,
+    `- max_files: ${settings.max_files}`,
+    `- max_patch_chars_per_file: ${settings.max_patch_chars_per_file}`,
+    `- max_total_chars: ${settings.max_total_chars}`,
   ].join("\n");
 
-  let remainingChars = settings.maxTotalChars - metadataPlaceholder.length - SEPARATOR.length;
-  const selectedFiles = filteredFiles.slice(0, settings.maxFiles);
+  let remainingChars = settings.max_total_chars - metadataPlaceholder.length - SEPARATOR.length;
+  const selectedFiles = filteredFiles.slice(0, settings.max_files);
   const renderedFiles: string[] = [];
 
   for (const file of selectedFiles) {
@@ -99,9 +100,9 @@ export function formatFileDiffs(files: FileDiff[], options?: Partial<DiffFormatO
       .join("\n");
 
     const rawPatch = file.patch ?? "PATCH UNAVAILABLE";
-    const patchTruncated = rawPatch.length > settings.maxPatchCharsPerFile;
+    const patchTruncated = rawPatch.length > settings.max_patch_chars_per_file;
     const patch = patchTruncated
-      ? `${rawPatch.slice(0, settings.maxPatchCharsPerFile)}\n... [PATCH TRUNCATED]`
+      ? `${rawPatch.slice(0, settings.max_patch_chars_per_file)}\n... [PATCH TRUNCATED]`
       : rawPatch;
     const rendered = `${header}\n\n\`\`\`diff\n${patch}\n\`\`\``;
 
@@ -125,9 +126,9 @@ export function formatFileDiffs(files: FileDiff[], options?: Partial<DiffFormatO
     `- included_files: ${renderedFiles.length}`,
     `- omitted_files: ${omittedCount}`,
     `- excluded_by_patterns: ${omittedByPatterns}`,
-    `- max_files: ${settings.maxFiles}`,
-    `- max_patch_chars_per_file: ${settings.maxPatchCharsPerFile}`,
-    `- max_total_chars: ${settings.maxTotalChars}`,
+    `- max_files: ${settings.max_files}`,
+    `- max_patch_chars_per_file: ${settings.max_patch_chars_per_file}`,
+    `- max_total_chars: ${settings.max_total_chars}`,
   ].join("\n");
 
   return [metadata, ...renderedFiles].join(SEPARATOR);
