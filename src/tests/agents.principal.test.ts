@@ -48,8 +48,7 @@ test("synthesizePrincipalSummary returns validated principal summary", async (t)
       mandate: "Make final calls.",
     },
     transcript,
-    apiKey: "test-key",
-    model: "test-model",
+    providerConfig: { type: "anthropic", config: { apiKey: "test-key", model: "test-model" } },
   });
 
   assert.equal(summary.agreements.length, 1);

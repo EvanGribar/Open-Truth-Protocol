@@ -61,8 +61,7 @@ test("runDebateRounds appends each debate round to transcript", async (t) => {
     diff,
     initialFindings,
     rounds: 2,
-    apiKey: "test-key",
-    model: "global-model",
+    providerConfig: { type: "anthropic", config: { apiKey: "test-key", model: "global-model" } },
     minConfidence: 0.6,
   });
 

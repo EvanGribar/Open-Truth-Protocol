@@ -144,6 +144,7 @@ principal: blocking until this path uses parameterized queries.
 
 ### Config fields
 
+- `provider`: optional LLM provider configuration (see Provider Configuration below).
 - `agents`: list of reviewer agents, each with a `name`, `mandate`, and optional `model`.
 - `debate.rounds`: how many debate rounds to run after the first-pass review.
 - `debate.min_confidence`: findings below this threshold are filtered out.
@@ -154,12 +155,197 @@ principal: blocking until this path uses parameterized queries.
 - `diff.maxTotalChars`: maximum total characters across all files.
 - `diff.excludePatterns`: array of regex patterns to exclude files from review (e.g., `["\\.lock$", "package-lock\\.json"]`).
 
+## Provider Configuration
+
+swarm-review supports multiple LLM providers through the `provider` field in `.swarm.yml`. If not specified, the action falls back to the legacy `anthropic-api-key` input.
+
+### Anthropic (default)
+
+```yaml
+provider:
+  type: anthropic
+  config:
+    apiKey: $ANTHROPIC_API_KEY  # Or use a GitHub secret reference
+    model: claude-3-5-sonnet-latest
+```
+
+### OpenAI
+
+```yaml
+provider:
+  type: openai
+  config:
+    apiKey: $OPENAI_API_KEY
+    model: gpt-4o
+    baseURL: https://api.openai.com/v1  # optional, defaults to OpenAI
+```
+
+### OpenRouter
+
+```yaml
+provider:
+  type: openrouter
+  config:
+    apiKey: $OPENROUTER_API_KEY
+    model: anthropic/claude-3.5-sonnet
+```
+
+### OpenClaw
+
+OpenClaw is an open-source autonomous AI agent that can be used as a provider via its OpenAI-compatible API. It requires a running OpenClaw gateway instance.
+
+```yaml
+provider:
+  type: openclaw
+  config:
+    apiKey: $OPENCLAW_GATEWAY_TOKEN
+    model: kimi-k2.5:cloud
+    baseURL: http://localhost:11434/v1
+```
+
+**Note:** OpenClaw requires a gateway to be running. The default `baseURL` points to the local Ollama/OpenClaw gateway. Adjust the `baseURL` if your gateway is hosted elsewhere.
+
+### Hermes Agent
+
+Hermes Agent is a self-improving AI agent built by Nous Research that supports OpenAI-compatible API endpoints. It can work with local models, cloud APIs, and multi-provider routers.
+
+```yaml
+provider:
+  type: hermes
+  config:
+    apiKey: $HERMES_API_KEY
+    model: nous-hermes-3-llama-3.1-405b
+    baseURL: http://localhost:8080/v1
+```
+
+**Note:** Hermes requires a running instance. The default `baseURL` points to the local Hermes gateway. Adjust the `baseURL` if your Hermes instance is hosted elsewhere.
+
+### Groq
+
+Groq provides ultra-low latency inference using their LPU (Language Processing Unit) technology. It's ideal for speed-sensitive applications requiring fast response times.
+
+```yaml
+provider:
+  type: groq
+  config:
+    apiKey: $GROQ_API_KEY
+    model: llama-3.3-70b-versatile
+```
+
+**Note:** Groq offers industry-leading latency for compatible models. Visit [Groq's documentation](https://console.groq.com/docs/models) for available models.
+
+### Together AI
+
+Together AI specializes in high-scale open-source LLMs with excellent price/performance. It supports fine-tuning and provides sub-100ms response times.
+
+```yaml
+provider:
+  type: together
+  config:
+    apiKey: $TOGETHER_API_KEY
+    model: meta-llama/Llama-3.3-70B-Instruct-Turbo
+```
+
+**Note:** Together AI is optimized for open-source models like Llama. Check their [model catalog](https://api.together.xyz/models) for available options.
+
+### Mistral AI
+
+Mistral AI is a leader in open-weight model APIs, providing access to their Mistral models through an OpenAI-compatible endpoint.
+
+```yaml
+provider:
+  type: mistral
+  config:
+    apiKey: $MISTRAL_API_KEY
+    model: mistral-large-latest
+```
+
+**Note:** Mistral offers both open-weight and proprietary models. See their [API documentation](https://docs.mistral.ai/) for model options.
+
+### Cohere
+
+Cohere provides enterprise-grade language models with an OpenAI-compatible API. Their models are optimized for business applications including text generation, summarization, and analysis.
+
+```yaml
+provider:
+  type: cohere
+  config:
+    apiKey: $COHERE_API_KEY
+    model: command-r-plus
+```
+
+**Note:** Cohere's Compatibility API allows seamless integration with OpenAI-based applications. Visit [Cohere's documentation](https://docs.cohere.com/docs/compatibility-api) for available models.
+
+### Perplexity
+
+Perplexity offers search-enhanced AI models that combine language understanding with real-time web search capabilities, providing up-to-date and factual responses.
+
+```yaml
+provider:
+  type: perplexity
+  config:
+    apiKey: $PERPLEXITY_API_KEY
+    model: llama-3.1-sonar-small-128k-online
+```
+
+**Note:** Perplexity models include web search capabilities for more accurate and current information. See their [API documentation](https://docs.perplexity.ai/docs/getting-started/quickstart) for model options.
+
+### Hyperbolic
+
+Hyperbolic provides cost-optimized GPU inference for open-source models through an OpenAI-compatible API, offering competitive pricing for high-scale deployments.
+
+```yaml
+provider:
+  type: hyperbolic
+  config:
+    apiKey: $HYPERBOLIC_API_KEY
+    model: meta-llama/Llama-3.3-70B-Instruct
+```
+
+**Note:** Hyperbolic specializes in affordable on-demand GPU inference. Check their [REST API documentation](https://docs.hyperbolic.xyz/docs/rest-api) for available models.
+
+### Custom Provider
+
+For any OpenAI-compatible API:
+
+```yaml
+provider:
+  type: custom
+  config:
+    apiKey: $CUSTOM_API_KEY
+    model: your-model-name
+    baseURL: https://your-provider.com/v1
+    headers:
+      X-Custom-Header: value
+```
+
+### Legacy Mode
+
+If you don't configure a provider in `.swarm.yml`, the action uses the legacy inputs:
+
+```yaml
+- name: Run swarm-review
+  uses: ./
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+    anthropic-model: claude-3-5-sonnet-latest
+```
+
+This is equivalent to configuring:
+
+```yaml
+provider:
+  type: anthropic
+  config:
+    apiKey: $ANTHROPIC_API_KEY
+    model: claude-instruct-beta-5b
+```
+
 ## Action Inputs
 
 - `github-token`: GitHub token with permission to comment on pull requests.
-- `anthropic-api-key`: Anthropic or compatible API key.
-- `anthropic-model`: optional model override for all agents.
-- `api-endpoint`: optional custom API endpoint for Anthropic-compatible providers (e.g., OpenRouter, local LLM).
+- `provider`: LLM provider configuration (see Provider Configuration above).
 - `config-path`: optional path to the swarm config file.
 - `check-run-id`: optional existing check run ID to update after the review.
 

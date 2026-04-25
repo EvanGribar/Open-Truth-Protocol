@@ -1,3 +1,95 @@
+# Provider configuration (optional)
+# If not specified, falls back to ANTHROPIC_API_KEY environment variable
+# Supported providers: anthropic, openai, openrouter, openclaw, hermes, groq, together, mistral, cohere, perplexity, hyperbolic, custom
+provider:
+  type: anthropic
+  config:
+    apiKey: $ANTHROPIC_API_KEY  # Or use a GitHub secret
+    model: claude-3-5-sonnet-latest
+
+# Alternative: OpenAI
+# provider:
+#   type: openai
+#   config:
+#     apiKey: $OPENAI_API_KEY
+#     model: gpt-4o
+#     baseURL: https://api.openai.com/v1  # optional, defaults to OpenAI
+
+# Alternative: OpenRouter
+# provider:
+#   type: openrouter
+#   config:
+#     apiKey: $OPENROUTER_API_KEY
+#     model: anthropic/claude-3.5-sonnet
+
+# Alternative: OpenClaw (via Ollama)
+# provider:
+#   type: openclaw
+#   config:
+#     apiKey: $OPENCLAW_GATEWAY_TOKEN
+#     model: kimi-k2.5:cloud
+#     baseURL: http://localhost:11434/v1
+
+# Alternative: Hermes Agent
+# provider:
+#   type: hermes
+#   config:
+#     apiKey: $HERMES_API_KEY
+#     model: nous-hermes-3-llama-3.1-405b
+#     baseURL: http://localhost:8080/v1
+
+# Alternative: Groq (ultra-low latency)
+# provider:
+#   type: groq
+#   config:
+#     apiKey: $GROQ_API_KEY
+#     model: llama-3.3-70b-versatile
+
+# Alternative: Together AI (open-source LLMs)
+# provider:
+#   type: together
+#   config:
+#     apiKey: $TOGETHER_API_KEY
+#     model: meta-llama/Llama-3.3-70B-Instruct-Turbo
+
+# Alternative: Mistral AI (open-weight models)
+# provider:
+#   type: mistral
+#   config:
+#     apiKey: $MISTRAL_API_KEY
+#     model: mistral-large-latest
+
+# Alternative: Cohere (enterprise-grade models)
+# provider:
+#   type: cohere
+#   config:
+#     apiKey: $COHERE_API_KEY
+#     model: command-r-plus
+
+# Alternative: Perplexity (search-enhanced models)
+# provider:
+#   type: perplexity
+#   config:
+#     apiKey: $PERPLEXITY_API_KEY
+#     model: llama-3.1-sonar-small-128k-online
+
+# Alternative: Hyperbolic (cost-optimized inference)
+# provider:
+#   type: hyperbolic
+#   config:
+#     apiKey: $HYPERBOLIC_API_KEY
+#     model: meta-llama/Llama-3.3-70B-Instruct
+
+# Alternative: Custom provider (OpenAI-compatible)
+# provider:
+#   type: custom
+#   config:
+#     apiKey: $CUSTOM_API_KEY
+#     model: your-model-name
+#     baseURL: https://your-provider.com/v1
+#     headers:
+#       X-Custom-Header: value
+
 agents:
   - name: security
     mandate: >

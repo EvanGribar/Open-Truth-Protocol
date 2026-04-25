@@ -9,6 +9,7 @@ import { synthesizePrincipalSummary } from "./agents/principal.js";
 import { upsertPullRequestComment, updateCheckRun, parsePositiveInteger } from "./github.js";
 import { DEFAULT_ANTHROPIC_MODEL, DEFAULT_API_ENDPOINT } from "./llm.js";
 import { renderDebateTranscriptMarkdown } from "./format.js";
+import { DEFAULT_PROVIDER_CONFIG, type ProviderConfig } from "./types.js";
 
 function readInput(name: string): string | undefined {
   const candidates = [
@@ -92,26 +93,48 @@ async function main(): Promise<void> {
     throw new Error("GitHub token is required.");
   }
 
-  if (!anthropicApiKey) {
-    throw new Error("Anthropic API key is required.");
-  }
-
   const workspaceRoot = process.cwd();
   const swarmConfig = await loadSwarmConfig(workspaceRoot, configPath);
   const octokit = createOctokit(githubToken);
   const { owner, repo } = resolveRepository();
   const pullNumber = await resolvePullRequestNumber();
 
+  // Resolve provider config: use config file if present, otherwise fall back to legacy Anthropic inputs
+  let providerConfig: ProviderConfig;
+  if (swarmConfig.provider) {
+    // If config has provider but no API key, try to inject from environment
+    if (!swarmConfig.provider.config.apiKey) {
+      if (swarmConfig.provider.type === "anthropic" && anthropicApiKey) {
+        providerConfig = {
+          type: "anthropic",
+          config: { apiKey: anthropicApiKey, model: swarmConfig.provider.config.model },
+        };
+      } else {
+        throw new Error(`Provider API key is required for ${swarmConfig.provider.type}.`);
+      }
+    } else {
+      providerConfig = swarmConfig.provider;
+    }
+  } else {
+    // Legacy mode: use Anthropic inputs
+    if (!anthropicApiKey) {
+      throw new Error("Anthropic API key is required (set ANTHROPIC_API_KEY or anthropic-api-key input).");
+    }
+    providerConfig = {
+      type: "anthropic",
+      config: { apiKey: anthropicApiKey, model: anthropicModel },
+    };
+  }
+
   console.log(`Running swarm-review for ${owner}/${repo}#${pullNumber}`);
+  console.log(`Using provider: ${providerConfig.type}`);
 
   const diff = await fetchPullRequestDiff(octokit, owner, repo, pullNumber);
   const reviewFindings = await runReviewRound({
     agents: swarmConfig.agents,
     diff,
-    apiKey: anthropicApiKey,
-    model: anthropicModel,
+    providerConfig,
     minConfidence: swarmConfig.debate.min_confidence,
-    apiEndpoint,
     diffConfig: swarmConfig.diff,
   });
 
@@ -120,19 +143,15 @@ async function main(): Promise<void> {
     diff,
     initialFindings: reviewFindings,
     rounds: swarmConfig.debate.rounds,
-    apiKey: anthropicApiKey,
-    model: anthropicModel,
+    providerConfig,
     minConfidence: swarmConfig.debate.min_confidence,
-    apiEndpoint,
     diffConfig: swarmConfig.diff,
   });
 
   const summary = await synthesizePrincipalSummary({
     principal: swarmConfig.principal,
     transcript,
-    apiKey: anthropicApiKey,
-    model: anthropicModel,
-    apiEndpoint,
+    providerConfig,
   });
 
   const headlineSummary = summary.summary.startsWith("## swarm-review")

@@ -1,22 +1,22 @@
 name: swarm-review
-description: Run a swarm of AI reviewers on pull requests.
+description: Run a swarm of AI reviewers on pull requests with multi-provider support (Anthropic, OpenAI, OpenRouter, custom).
 author: GitHub Copilot
 inputs:
   github-token:
     description: GitHub token with permission to comment on pull requests.
     required: true
   anthropic-api-key:
-    description: API key for Anthropic or a compatible provider.
-    required: true
+    description: Legacy: API key for Anthropic. For multi-provider support, configure provider in .swarm.yml instead.
+    required: false
   anthropic-model:
-    description: Model name to use for all agent calls.
+    description: Legacy: Model name for Anthropic. For multi-provider support, configure provider in .swarm.yml instead.
     required: false
     default: claude-3-5-sonnet-latest
   api-endpoint:
     description: Custom API endpoint for Anthropic-compatible providers (e.g., OpenRouter, local LLM).
     required: false
   config-path:
-    description: Path to the swarm configuration file.
+    description: Path to the swarm configuration file. Use this to configure providers, agents, and debate settings.
     required: false
     default: .swarm.yml
   check-run-id:
