@@ -64,8 +64,7 @@ test("runReviewRound fans out to all agents and uses model overrides", async (t)
   const findings = await runReviewRound({
     agents,
     diff,
-    apiKey: "test-key",
-    model: "global-model",
+    providerConfig: { type: "anthropic", config: { apiKey: "test-key", model: "global-model" } },
     minConfidence: 0.6,
   });
 
