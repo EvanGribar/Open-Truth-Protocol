@@ -40,8 +40,7 @@ test("runAgentFindingRound normalizes findings and filters by confidence", async
     )) as typeof fetch;
 
   const findings = await runAgentFindingRound({
-    apiKey: "test-key",
-    model: "test-model",
+    providerConfig: { type: "anthropic", config: { apiKey: "test-key", model: "test-model" } },
     system: "test-system",
     prompt: "test-prompt",
     agentName: "fallback-agent",

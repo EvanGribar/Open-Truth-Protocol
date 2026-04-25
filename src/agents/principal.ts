@@ -1,18 +1,16 @@
-import { DEFAULT_ANTHROPIC_MODEL, callAnthropicStructured } from "../llm.js";
+import { callLLMStructured } from "../llm.js";
 import { buildPrincipalPrompt } from "../prompts.js";
-import { PrincipalSummarySchema, type DebateTranscript, type PrincipalConfig, type PrincipalSummary } from "../types.js";
+import { PrincipalSummarySchema, type DebateTranscript, type PrincipalConfig, type PrincipalSummary, type ProviderConfig } from "../types.js";
 
 export type PrincipalRoundInput = {
   principal: PrincipalConfig;
   transcript: DebateTranscript;
-  apiKey: string;
-  model?: string;
+  providerConfig: ProviderConfig;
 };
 
 export async function synthesizePrincipalSummary(input: PrincipalRoundInput): Promise<PrincipalSummary> {
-  return callAnthropicStructured(
-    input.apiKey,
-    input.model ?? DEFAULT_ANTHROPIC_MODEL,
+  return callLLMStructured(
+    input.providerConfig,
     input.principal.mandate,
     buildPrincipalPrompt(input.principal, input.transcript),
     PrincipalSummarySchema

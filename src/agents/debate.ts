@@ -1,6 +1,5 @@
-import { DEFAULT_ANTHROPIC_MODEL } from "../llm.js";
 import { buildDebatePrompt } from "../prompts.js";
-import type { AgentConfig, DebateTranscript, FileDiff, Finding } from "../types.js";
+import type { AgentConfig, DebateTranscript, FileDiff, Finding, ProviderConfig } from "../types.js";
 import { runAgentFindingRound } from "./shared.js";
 
 export type DebateRoundInput = {
@@ -8,8 +7,7 @@ export type DebateRoundInput = {
   diff: FileDiff[];
   initialFindings: Finding[];
   rounds: number;
-  apiKey: string;
-  model?: string;
+  providerConfig: ProviderConfig;
   minConfidence: number;
 };
 
@@ -31,8 +29,7 @@ export async function runDebateRounds(input: DebateRoundInput): Promise<DebateTr
     const roundFindings = await Promise.all(
       input.agents.map((agent) =>
         runAgentFindingRound({
-          apiKey: input.apiKey,
-          model: agent.model ?? input.model ?? DEFAULT_ANTHROPIC_MODEL,
+          providerConfig: input.providerConfig,
           system,
           prompt: buildDebatePrompt(agent, input.diff, currentTranscript, debateRound),
           agentName: agent.name,
