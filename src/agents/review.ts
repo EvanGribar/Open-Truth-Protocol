@@ -1,5 +1,5 @@
 import { buildReviewPrompt } from "../prompts.js";
-import type { AgentConfig, FileDiff, Finding, ProviderConfig } from "../types.js";
+import type { AgentConfig, FileDiff, Finding, ProviderConfig, DiffConfig } from "../types.js";
 import { runAgentFindingRound } from "./shared.js";
 
 export type ReviewRoundInput = {
@@ -7,6 +7,7 @@ export type ReviewRoundInput = {
   diff: FileDiff[];
   providerConfig: ProviderConfig;
   minConfidence: number;
+  diffConfig?: DiffConfig;
 };
 
 export async function runReviewRound(input: ReviewRoundInput): Promise<Finding[]> {
@@ -84,7 +85,7 @@ export async function runReviewRound(input: ReviewRoundInput): Promise<Finding[]
       return runAgentFindingRound({
         providerConfig,
         system,
-        prompt: buildReviewPrompt(agent, input.diff),
+        prompt: buildReviewPrompt(agent, input.diff, input.diffConfig),
         agentName: agent.name,
         idPrefix: `review-${agent.name}`,
         minConfidence: input.minConfidence,

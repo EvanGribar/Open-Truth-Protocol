@@ -1,13 +1,13 @@
 import { existsSync } from "node:fs";
 import { appendFile, readFile } from "node:fs/promises";
 
-import { createOctokit, fetchPullRequestDiff } from "./diff.js";
+import { createOctokit, fetchPullRequestDiff, formatFileDiffs } from "./diff.js";
 import { loadSwarmConfig } from "./config.js";
 import { runDebateRounds } from "./agents/debate.js";
 import { runReviewRound } from "./agents/review.js";
 import { synthesizePrincipalSummary } from "./agents/principal.js";
 import { upsertPullRequestComment, updateCheckRun, parsePositiveInteger } from "./github.js";
-import { DEFAULT_ANTHROPIC_MODEL } from "./llm.js";
+import { DEFAULT_ANTHROPIC_MODEL, DEFAULT_API_ENDPOINT } from "./llm.js";
 import { renderDebateTranscriptMarkdown } from "./format.js";
 import { DEFAULT_PROVIDER_CONFIG, type ProviderConfig } from "./types.js";
 
@@ -85,6 +85,7 @@ async function main(): Promise<void> {
   const githubToken = readInput("github-token") ?? process.env.GITHUB_TOKEN;
   const anthropicApiKey = readInput("anthropic-api-key") ?? process.env.ANTHROPIC_API_KEY;
   const anthropicModel = readInput("anthropic-model") ?? process.env.ANTHROPIC_MODEL ?? DEFAULT_ANTHROPIC_MODEL;
+  const apiEndpoint = readInput("api-endpoint") ?? process.env.API_ENDPOINT ?? DEFAULT_API_ENDPOINT;
   const configPath = readInput("config-path") ?? process.env.CONFIG_PATH ?? ".swarm.yml";
   const checkRunId = readInput("check-run-id") ?? process.env.CHECK_RUN_ID;
 
@@ -134,6 +135,7 @@ async function main(): Promise<void> {
     diff,
     providerConfig,
     minConfidence: swarmConfig.debate.min_confidence,
+    diffConfig: swarmConfig.diff,
   });
 
   const transcript = await runDebateRounds({
@@ -143,6 +145,7 @@ async function main(): Promise<void> {
     rounds: swarmConfig.debate.rounds,
     providerConfig,
     minConfidence: swarmConfig.debate.min_confidence,
+    diffConfig: swarmConfig.diff,
   });
 
   const summary = await synthesizePrincipalSummary({

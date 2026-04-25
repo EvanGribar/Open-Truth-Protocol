@@ -1,17 +1,14 @@
 import { Octokit } from "@octokit/rest";
 
-import { FileDiffSchema, type FileDiff } from "./types.js";
+import { FileDiffSchema, type DiffConfig, type FileDiff } from "./types.js";
 
-type DiffFormatOptions = {
-  maxFiles?: number;
-  maxPatchCharsPerFile?: number;
-  maxTotalChars?: number;
-};
+type DiffFormatOptions = DiffConfig;
 
 const DEFAULT_DIFF_FORMAT_OPTIONS: Required<DiffFormatOptions> = {
-  maxFiles: 80,
-  maxPatchCharsPerFile: 12_000,
-  maxTotalChars: 180_000,
+  max_files: 80,
+  max_patch_chars_per_file: 12_000,
+  max_total_chars: 180_000,
+  exclude_patterns: [],
 };
 
 export function createOctokit(token: string): Octokit {
@@ -46,7 +43,20 @@ export async function fetchPullRequestDiff(
   );
 }
 
-export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = {}): string {
+function getExcludeRegexes(patterns: string[]): RegExp[] {
+  return patterns
+    .map((p) => {
+      try {
+        return new RegExp(p);
+      } catch (e) {
+        console.error(`Invalid regex pattern "${p}":`, e);
+        return null;
+      }
+    })
+    .filter((r): r is RegExp => r !== null);
+}
+
+export function formatFileDiffs(files: FileDiff[], options?: Partial<DiffFormatOptions>): string {
   const settings = {
     ...DEFAULT_DIFF_FORMAT_OPTIONS,
     ...options,
@@ -54,20 +64,28 @@ export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = 
 
   const SEPARATOR = "\n\n---\n\n";
 
+  // Pre-compile regex patterns for better performance
+  const excludeRegexes = getExcludeRegexes(settings.exclude_patterns);
+
+  // Filter out excluded files
+  const filteredFiles = files.filter(
+    (file) => !excludeRegexes.some((r) => r.test(file.path))
+  );
+
   // Pre-calculate metadata to establish the initial budget overhead.
-  // Use actual values since they're consistent across calculations.
+  // We use placeholder counts that won't significantly change the length.
   const metadataPlaceholder = [
     "### Diff Budget",
     `- total_files: ${files.length}`,
-    `- included_files: ${Math.min(files.length, settings.maxFiles)}`,
-    `- omitted_files: ${files.length}`,
-    `- max_files: ${settings.maxFiles}`,
-    `- max_patch_chars_per_file: ${settings.maxPatchCharsPerFile}`,
-    `- max_total_chars: ${settings.maxTotalChars}`,
+    `- included_files: 888`,
+    `- omitted_files: 888`,
+    `- max_files: ${settings.max_files}`,
+    `- max_patch_chars_per_file: ${settings.max_patch_chars_per_file}`,
+    `- max_total_chars: ${settings.max_total_chars}`,
   ].join("\n");
 
-  let remainingChars = settings.maxTotalChars - metadataPlaceholder.length - SEPARATOR.length;
-  const selectedFiles = files.slice(0, settings.maxFiles);
+  let remainingChars = settings.max_total_chars - metadataPlaceholder.length - SEPARATOR.length;
+  const selectedFiles = filteredFiles.slice(0, settings.max_files);
   const renderedFiles: string[] = [];
 
   for (const file of selectedFiles) {
@@ -82,9 +100,9 @@ export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = 
       .join("\n");
 
     const rawPatch = file.patch ?? "PATCH UNAVAILABLE";
-    const patchTruncated = rawPatch.length > settings.maxPatchCharsPerFile;
+    const patchTruncated = rawPatch.length > settings.max_patch_chars_per_file;
     const patch = patchTruncated
-      ? `${rawPatch.slice(0, settings.maxPatchCharsPerFile)}\n... [PATCH TRUNCATED]`
+      ? `${rawPatch.slice(0, settings.max_patch_chars_per_file)}\n... [PATCH TRUNCATED]`
       : rawPatch;
     const rendered = `${header}\n\n\`\`\`diff\n${patch}\n\`\`\``;
 
@@ -97,18 +115,20 @@ export function formatFileDiffs(files: FileDiff[], options: DiffFormatOptions = 
     remainingChars -= rendered.length + SEPARATOR.length;
   }
 
-  const omittedByFileLimit = Math.max(0, files.length - selectedFiles.length);
+  const omittedByFileLimit = Math.max(0, filteredFiles.length - selectedFiles.length);
   const omittedByCharBudget = Math.max(0, selectedFiles.length - renderedFiles.length);
-  const omittedCount = omittedByFileLimit + omittedByCharBudget;
+  const omittedByPatterns = files.length - filteredFiles.length;
+  const omittedCount = omittedByFileLimit + omittedByCharBudget + omittedByPatterns;
 
   const metadata = [
     "### Diff Budget",
     `- total_files: ${files.length}`,
     `- included_files: ${renderedFiles.length}`,
     `- omitted_files: ${omittedCount}`,
-    `- max_files: ${settings.maxFiles}`,
-    `- max_patch_chars_per_file: ${settings.maxPatchCharsPerFile}`,
-    `- max_total_chars: ${settings.maxTotalChars}`,
+    `- excluded_by_patterns: ${omittedByPatterns}`,
+    `- max_files: ${settings.max_files}`,
+    `- max_patch_chars_per_file: ${settings.max_patch_chars_per_file}`,
+    `- max_total_chars: ${settings.max_total_chars}`,
   ].join("\n");
 
   return [metadata, ...renderedFiles].join(SEPARATOR);

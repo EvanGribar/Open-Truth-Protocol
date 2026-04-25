@@ -76,6 +76,15 @@ export const PrincipalConfigSchema = z.object({
   mandate: z.string().min(1).default(DEFAULT_PRINCIPAL_MANDATE),
 });
 
+export const DiffConfigSchema = z.object({
+  max_files: z.number().int().positive().default(80),
+  max_patch_chars_per_file: z.number().int().positive().default(12_000),
+  max_total_chars: z.number().int().positive().default(180_000),
+  exclude_patterns: z.array(z.string()).default([]),
+});
+
+export type DiffConfig = z.infer<typeof DiffConfigSchema>;
+
 export const ProviderTypeSchema = z.enum([
   "anthropic",
   "openai",
@@ -181,6 +190,12 @@ export const SwarmConfigSchema = z.object({
       mode: z.enum(["outcome", "full"]).default("outcome"),
     })
     .default({ mode: "outcome" }),
+  diff: DiffConfigSchema.default({
+    max_files: 80,
+    max_patch_chars_per_file: 12_000,
+    max_total_chars: 180_000,
+    exclude_patterns: [],
+  }),
   provider: ProviderConfigSchema.optional(),
 });
 

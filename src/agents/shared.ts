@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { callLLMStructured, DEFAULT_ANTHROPIC_MODEL, normalizeFinding } from "../llm.js";
+import { callLLMStructured, normalizeFinding } from "../llm.js";
 import { RawFindingSchema, type Finding, type RawFinding, type ProviderConfig } from "../types.js";
 
 const RawFindingArraySchema = z.array(RawFindingSchema);

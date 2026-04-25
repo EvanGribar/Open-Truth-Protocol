@@ -3,7 +3,10 @@ import { z } from "zod";
 import { FindingSchema, RawFindingSchema, type Finding, type RawFinding, type ProviderConfig } from "./types.js";
 import { createProvider, type LLMProvider } from "./providers.js";
 
+const ANTHROPIC_MESSAGES_ENDPOINT = "https://api.anthropic.com/v1/messages";
+
 export const DEFAULT_ANTHROPIC_MODEL = "claude-3-5-sonnet-latest";
+export const DEFAULT_API_ENDPOINT = ANTHROPIC_MESSAGES_ENDPOINT;
 
 function stripMarkdownFences(text: string): string {
   const trimmed = text.trim();
@@ -73,7 +76,8 @@ export async function callAnthropic(
   model: string,
   system: string,
   prompt: string,
-  maxTokens = 4096
+  maxTokens = 4096,
+  apiEndpoint = DEFAULT_API_ENDPOINT
 ): Promise<string> {
   return callLLM(
     { type: "anthropic", config: { apiKey, model } },
@@ -88,7 +92,8 @@ export async function callAnthropicStructured<T>(
   model: string,
   system: string,
   prompt: string,
-  schema: z.ZodType<T>
+  schema: z.ZodType<T>,
+  apiEndpoint = DEFAULT_API_ENDPOINT
 ): Promise<T> {
   return callLLMStructured(
     { type: "anthropic", config: { apiKey, model } },

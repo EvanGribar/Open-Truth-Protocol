@@ -1,5 +1,5 @@
 import { buildDebatePrompt } from "../prompts.js";
-import type { AgentConfig, DebateTranscript, FileDiff, Finding, ProviderConfig } from "../types.js";
+import type { AgentConfig, DebateTranscript, FileDiff, Finding, ProviderConfig, DiffConfig } from "../types.js";
 import { runAgentFindingRound } from "./shared.js";
 
 export type DebateRoundInput = {
@@ -9,6 +9,7 @@ export type DebateRoundInput = {
   rounds: number;
   providerConfig: ProviderConfig;
   minConfidence: number;
+  diffConfig?: DiffConfig;
 };
 
 export async function runDebateRounds(input: DebateRoundInput): Promise<DebateTranscript> {
@@ -31,7 +32,7 @@ export async function runDebateRounds(input: DebateRoundInput): Promise<DebateTr
         runAgentFindingRound({
           providerConfig: input.providerConfig,
           system,
-          prompt: buildDebatePrompt(agent, input.diff, currentTranscript, debateRound),
+          prompt: buildDebatePrompt(agent, input.diff, currentTranscript, debateRound, input.diffConfig),
           agentName: agent.name,
           idPrefix: `debate-${debateRound}-${agent.name}`,
           minConfidence: input.minConfidence,
