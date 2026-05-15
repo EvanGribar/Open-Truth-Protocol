@@ -18,6 +18,42 @@ export const DEFAULT_SWARM_CONFIG: SwarmConfig = SwarmConfigSchema.parse({
   output: { mode: "outcome" },
 });
 
+function resolveEnvReference(value: string, pathLabel: string): string {
+  const match = /^\$([A-Za-z_][A-Za-z0-9_]*)$/.exec(value);
+  if (!match) {
+    return value;
+  }
+
+  const [, envName] = match;
+  const resolved = process.env[envName];
+  if (resolved === undefined) {
+    throw new Error(
+      `Missing environment variable "${envName}" referenced by config value at "${pathLabel}".`
+    );
+  }
+
+  return resolved;
+}
+
+function resolveConfigEnvReferences(value: unknown, pathLabel = "$"): unknown {
+  if (typeof value === "string") {
+    return resolveEnvReference(value, pathLabel);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item, index) => resolveConfigEnvReferences(item, `${pathLabel}[${index}]`));
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value);
+    return Object.fromEntries(
+      entries.map(([key, item]) => [key, resolveConfigEnvReferences(item, `${pathLabel}.${key}`)])
+    );
+  }
+
+  return value;
+}
+
 export async function loadSwarmConfig(
   workspaceRoot: string = process.cwd(),
   configPath = ".swarm.yml"
@@ -33,5 +69,6 @@ export async function loadSwarmConfig(
 
   const rawConfig = await readFile(resolvedConfigPath, "utf8");
   const parsedConfig = yaml.load(rawConfig) ?? {};
-  return SwarmConfigSchema.parse(parsedConfig);
+  const resolvedConfig = resolveConfigEnvReferences(parsedConfig);
+  return SwarmConfigSchema.parse(resolvedConfig);
 }

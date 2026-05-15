@@ -144,6 +144,7 @@ principal: blocking until this path uses parameterized queries.
 
 ### Config fields
 
+- Exact env references (for example `apiKey: $ANTHROPIC_API_KEY`) are resolved from the runtime environment before schema validation. Missing referenced variables fail the run with a clear error.
 - `provider`: optional LLM provider configuration (see Provider Configuration below).
 - `agents`: list of reviewer agents, each with a `name`, `mandate`, and optional `model`.
 - `debate.rounds`: how many debate rounds to run after the first-pass review.
@@ -165,9 +166,12 @@ swarm-review supports multiple LLM providers through the `provider` field in `.s
 provider:
   type: anthropic
   config:
-    apiKey: $ANTHROPIC_API_KEY  # Or use a GitHub secret reference
+    apiKey: $ANTHROPIC_API_KEY
     model: claude-3-5-sonnet-latest
+    # baseURL: https://api.anthropic.com/v1/messages  # optional
 ```
+
+`api-endpoint` action input overrides Anthropic's endpoint in both legacy mode and `provider.type: anthropic`. If `api-endpoint` is not set, an explicit `provider.config.baseURL` is preserved.
 
 ### OpenAI
 
@@ -353,13 +357,26 @@ provider:
   type: anthropic
   config:
     apiKey: $ANTHROPIC_API_KEY
-    model: claude-instruct-beta-5b
+    model: claude-3-5-sonnet-latest
+```
+
+You can optionally set `api-endpoint` to override the Anthropic messages endpoint for this run:
+
+```yaml
+- name: Run swarm-review
+  uses: ./
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+    api-endpoint: https://your-proxy.example/v1/messages
 ```
 
 ## Action Inputs
 
 - `github-token`: GitHub token with permission to comment on pull requests.
-- `provider`: LLM provider configuration (see Provider Configuration above).
+- `anthropic-api-key`: legacy Anthropic API key input used when `provider` is not set.
+- `anthropic-model`: legacy Anthropic model input used when `provider` is not set.
+- `api-endpoint`: optional Anthropic endpoint override (legacy mode and `provider.type: anthropic`).
 - `config-path`: optional path to the swarm config file.
 - `check-run-id`: optional existing check run ID to update after the review.
 
@@ -395,7 +412,7 @@ npm test
 ## Troubleshooting
 
 - Missing token or API key:
-  - Ensure `github-token` and `anthropic-api-key` are passed to the action.
+  - Ensure `github-token` is set, and either a valid provider `config.apiKey` is configured in `.swarm.yml` (supports `$ENV_VAR` resolution) or `anthropic-api-key` is passed in legacy mode.
 - The action cannot resolve pull request number:
   - Confirm the workflow runs on pull request events, or provide `pull-number` through environment input.
 - LLM response parsing failures:

@@ -13,7 +13,7 @@ inputs:
     required: false
     default: claude-3-5-sonnet-latest
   api-endpoint:
-    description: Custom API endpoint for Anthropic-compatible providers (e.g., OpenRouter, local LLM).
+    description: Optional override for the Anthropic Messages endpoint. Applies to legacy Anthropic mode and provider.type=anthropic.
     required: false
   config-path:
     description: Path to the swarm configuration file. Use this to configure providers, agents, and debate settings.

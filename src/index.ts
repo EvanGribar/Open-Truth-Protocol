@@ -85,7 +85,7 @@ async function main(): Promise<void> {
   const githubToken = readInput("github-token") ?? process.env.GITHUB_TOKEN;
   const anthropicApiKey = readInput("anthropic-api-key") ?? process.env.ANTHROPIC_API_KEY;
   const anthropicModel = readInput("anthropic-model") ?? process.env.ANTHROPIC_MODEL ?? DEFAULT_ANTHROPIC_MODEL;
-  const apiEndpoint = readInput("api-endpoint") ?? process.env.API_ENDPOINT ?? DEFAULT_API_ENDPOINT;
+  const apiEndpointOverride = readInput("api-endpoint") ?? process.env.API_ENDPOINT;
   const configPath = readInput("config-path") ?? process.env.CONFIG_PATH ?? ".swarm.yml";
   const checkRunId = readInput("check-run-id") ?? process.env.CHECK_RUN_ID;
 
@@ -107,13 +107,26 @@ async function main(): Promise<void> {
       if (swarmConfig.provider.type === "anthropic" && anthropicApiKey) {
         providerConfig = {
           type: "anthropic",
-          config: { apiKey: anthropicApiKey, model: swarmConfig.provider.config.model },
+          config: {
+            ...swarmConfig.provider.config,
+            apiKey: anthropicApiKey,
+            ...(apiEndpointOverride ? { baseURL: apiEndpointOverride } : {}),
+          },
         };
       } else {
         throw new Error(`Provider API key is required for ${swarmConfig.provider.type}.`);
       }
     } else {
-      providerConfig = swarmConfig.provider;
+      providerConfig =
+        swarmConfig.provider.type === "anthropic"
+          ? {
+              type: "anthropic",
+              config: {
+                ...swarmConfig.provider.config,
+                ...(apiEndpointOverride ? { baseURL: apiEndpointOverride } : {}),
+              },
+            }
+          : swarmConfig.provider;
     }
   } else {
     // Legacy mode: use Anthropic inputs
@@ -122,7 +135,11 @@ async function main(): Promise<void> {
     }
     providerConfig = {
       type: "anthropic",
-      config: { apiKey: anthropicApiKey, model: anthropicModel },
+      config: {
+        apiKey: anthropicApiKey,
+        model: anthropicModel,
+        baseURL: apiEndpointOverride ?? DEFAULT_API_ENDPOINT,
+      },
     };
   }
 

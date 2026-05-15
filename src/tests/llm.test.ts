@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { callAnthropic, extractJsonText } from "../llm.js";
+import { callAnthropic, callLLM, extractJsonText } from "../llm.js";
 
 test("extractJsonText accepts fenced JSON", () => {
   const extracted = extractJsonText("```json\n[{\"id\":\"1\"}]\n```");
@@ -54,4 +54,54 @@ test("callAnthropic throws on non-retryable status", async (t) => {
     () => callAnthropic("test-key", "test-model", "system", "prompt"),
     /Anthropic request failed with 400/
   );
+});
+
+test("callAnthropic sends requests to the configured apiEndpoint", async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  let requestedUrl: string | undefined;
+  globalThis.fetch = (async (input) => {
+    requestedUrl = String(input);
+    return new Response(
+      JSON.stringify({
+        content: [{ type: "text", text: "[]" }],
+      }),
+      { status: 200 }
+    );
+  }) as typeof fetch;
+
+  const endpoint = "https://example.invalid/custom-anthropic/messages";
+  await callAnthropic("test-key", "test-model", "system", "prompt", 4096, endpoint);
+
+  assert.equal(requestedUrl, endpoint);
+});
+
+test("callLLM preserves anthropic provider baseURL when configured", async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  let requestedUrl: string | undefined;
+  globalThis.fetch = (async (input) => {
+    requestedUrl = String(input);
+    return new Response(
+      JSON.stringify({
+        content: [{ type: "text", text: "[]" }],
+      }),
+      { status: 200 }
+    );
+  }) as typeof fetch;
+
+  const endpoint = "https://provider-config.example/v1/messages";
+  await callLLM(
+    { type: "anthropic", config: { apiKey: "test-key", model: "test-model", baseURL: endpoint } },
+    "system",
+    "prompt"
+  );
+
+  assert.equal(requestedUrl, endpoint);
 });

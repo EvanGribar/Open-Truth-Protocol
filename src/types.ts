@@ -105,6 +105,7 @@ export type ProviderType = z.infer<typeof ProviderTypeSchema>;
 export const AnthropicConfigSchema = z.object({
   apiKey: z.string().min(1),
   model: z.string().min(1).default("claude-3-5-sonnet-latest"),
+  baseURL: z.string().url().optional(),
 });
 
 export const OpenAIConfigSchema = z.object({

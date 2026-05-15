@@ -1,11 +1,13 @@
 # Provider configuration (optional)
 # If not specified, falls back to ANTHROPIC_API_KEY environment variable
+# Values like "$ANTHROPIC_API_KEY" are resolved from the runtime environment.
 # Supported providers: anthropic, openai, openrouter, openclaw, hermes, groq, together, mistral, cohere, perplexity, hyperbolic, gemini, custom
 provider:
   type: anthropic
   config:
-    apiKey: $ANTHROPIC_API_KEY  # Or use a GitHub secret
+    apiKey: $ANTHROPIC_API_KEY
     model: claude-3-5-sonnet-latest
+    # baseURL: https://api.anthropic.com/v1/messages  # optional; overridden by action input api-endpoint when provided
 
 # Alternative: OpenAI
 # provider:
