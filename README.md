@@ -15,10 +15,12 @@ Most AI review tools give you one opinion. swarm-review gives you a review proce
 ## How it works
 
 1. The action fetches the pull request diff from GitHub.
-2. Every agent performs an independent first-pass review in parallel.
-3. The agents debate each other for the configured number of rounds.
-4. The principal agent synthesizes the transcript into a final summary.
-5. The action updates the PR comment and, optionally, the check run.
+2. If `static_analysis` is enabled, the action runs linter and compiler checks in the runner workspace and parses warnings and errors.
+3. Every agent performs an independent first-pass review in parallel.
+4. The static analysis findings are merged with the agent findings.
+5. The agents debate each other for the configured number of rounds, treating the static analysis findings as ground-truth facts.
+6. The principal agent synthesizes the transcript into a final summary.
+7. The action updates the PR comment and, optionally, the check run.
 
 ## Architecture
 
@@ -113,6 +115,17 @@ diff:
   max_total_chars: 180000
   include_patterns: []
   exclude_patterns: []
+
+static_analysis:
+  enabled: false
+  commands:
+    - name: eslint
+      run: npx eslint --format json -o eslint-report.json
+      parser: eslint-json
+    - name: typescript
+      run: npx tsc --noEmit
+      parser: regex
+      regex: "(?<file>[^:]+):(?<line>\\d+):(?<column>\\d+) - (?<claim>.+)"
 ```
 
 ### Output modes
@@ -164,6 +177,12 @@ principal: blocking until this path uses parameterized queries.
 - `diff.max_total_chars`: maximum total characters across all files.
 - `diff.include_patterns`: global list of glob patterns to limit review files (e.g., `["src/**"]`).
 - `diff.exclude_patterns`: global list of glob patterns to exclude files from review (e.g., `["\\.lock$", "package-lock\\.json"]`).
+- `static_analysis.enabled`: whether to run local linter and compiler commands (`true` or `false`).
+- `static_analysis.commands`: list of shell commands to run, each with:
+  - `name`: the name of the tool (used as the agent name for findings).
+  - `run`: the shell command to execute. Supports capturing stdout or parsing generated reports if output file flags (e.g., `-o <file>` or `--output-file <file>`) are specified.
+  - `parser`: log parser to use (`eslint-json` or `regex`).
+  - `regex`: the regular expression to parse output logs line-by-line (required when `parser` is `regex`). Must define `(?<file>...)`, `(?<line>...)`, and `(?<claim>...)` named capture groups, and optionally `(?<severity>...)`.
 
 ## Provider Configuration
 
