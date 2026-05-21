@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## v0.6.0 - 2026-05-21
+
+### Added
+- **Local Sandbox & Static Analysis Hook**: Run user-specified shell commands (e.g. `npm run lint`, `tsc --noEmit`, `cargo check`) inside the Action runner workspace.
+- **Linter & Compiler Parsers**: Parse CLI warnings/errors using:
+  - `eslint-json`: For ESLint structured JSON reports (supports both direct stdout and output files via `-o` or `--output-file`).
+  - `regex`: Custom regular expressions with named capture groups to parse logs line-by-line.
+- **Linter Agent Integration**: Static analysis findings automatically join the round 1 review and serve as ground-truth facts during the debate phase.
+
 ## v0.5.0 - 2026-05-19
 
 ### Added

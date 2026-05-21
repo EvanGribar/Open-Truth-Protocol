@@ -25,6 +25,8 @@ This is the mechanic that doesn't exist anywhere else. That is the north star.
 ### Round 1 — independent review
 All agents receive the raw git diff in parallel. Each agent has no knowledge of what the others will say. Each returns structured findings: a claim, a severity, a file, a line, and a confidence score.
 
+Additionally, if **Static Analysis** is enabled, linter and compiler tools (like ESLint and TypeScript compilation) are executed in the runner workspace. Their parsed diagnostics join the round 1 review findings and serve as ground-truth facts during the debate phase.
+
 ### Round 2 — debate
 Each agent receives the full findings from all other agents. Each agent can produce new findings or rebuttals targeting another agent's finding by ID. Rebuttals can agree, dispute, or escalate. Agents can be rebutted back. The number of debate rounds is configurable.
 
@@ -108,6 +110,17 @@ principal:
   mandate: >
     You are the principal engineer. Read the full debate and make final calls.
     Be direct. Show your reasoning. Surface genuine disagreements clearly.
+
+static_analysis:
+  enabled: true
+  commands:
+    - name: eslint
+      run: npx eslint --format json -o eslint-report.json
+      parser: eslint-json
+    - name: typescript
+      run: npx tsc --noEmit
+      parser: regex
+      regex: "(?<file>[^:]+):(?<line>\\d+):(?<column>\\d+) - (?<claim>.+)"
 ```
 
 ---
