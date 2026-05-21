@@ -191,6 +191,27 @@ export const ProviderConfigSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("custom"), config: CustomProviderConfigSchema }),
 ]);
 
+export const StaticAnalysisCommandSchema = z.discriminatedUnion("parser", [
+  z.object({
+    parser: z.literal("eslint-json"),
+    name: z.string().min(1),
+    run: z.string().min(1),
+    outputFile: z.string().min(1).optional(),
+  }),
+  z.object({
+    parser: z.literal("regex"),
+    name: z.string().min(1),
+    run: z.string().min(1),
+    regex: z.string().min(1),
+    outputFile: z.string().min(1).optional(),
+  }),
+]);
+
+export const StaticAnalysisConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  commands: z.array(StaticAnalysisCommandSchema).default([]),
+});
+
 export const SwarmConfigSchema = z.object({
   agents: z.array(AgentConfigSchema).min(1).default(DEFAULT_AGENTS),
   debate: DebateConfigSchema.default(DEFAULT_DEBATE_CONFIG),
@@ -210,11 +231,18 @@ export const SwarmConfigSchema = z.object({
     include_patterns: [],
   }),
   provider: ProviderConfigSchema.optional(),
+  static_analysis: StaticAnalysisConfigSchema.default({
+    enabled: false,
+    commands: [],
+  }),
 });
 
 export type DebateConfig = z.infer<typeof DebateConfigSchema>;
 export type PrincipalConfig = z.infer<typeof PrincipalConfigSchema>;
 export type SwarmConfig = z.infer<typeof SwarmConfigSchema>;
+export type StaticAnalysisCommand = z.infer<typeof StaticAnalysisCommandSchema>;
+export type StaticAnalysisConfig = z.infer<typeof StaticAnalysisConfigSchema>;
+
 
 export const FileDiffSchema = z.object({
   path: z.string().min(1),

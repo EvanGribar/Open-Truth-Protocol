@@ -7,9 +7,9 @@ gantt
     title Swarm-Review Release Timeline
     dateFormat  YYYY-MM-DD
     section Core Hardening
-    v0.5.x (Bugfixes & Token Tracking) :active, 2026-05-20, 10d
+    v0.5.x (Bugfixes & Token Tracking) : 2026-05-20, 10d
     section Future Milestones
-    v0.6.0 (Local Sandbox & Static Analysis) : 2026-06-01, 15d
+    v0.6.0 (Local Sandbox & Static Analysis) :active, 2026-06-01, 15d
     v0.7.0 (Context Enrichment & AST Navigation) : 2026-06-16, 20d
     v0.8.0 (Interactive Feedback & Agent Profiles) : 2026-07-06, 15d
     v1.0.0 (Production Hardening & Cost Controls) : 2026-07-21, 20d
@@ -27,7 +27,7 @@ Our goal is to make **swarm-review** the premier open-source multi-agent PR revi
 
 ## 🚀 Milestones
 
-### 📍 Phase 1: Local Sandbox & Static Analysis Integration (v0.6.0)
+### 📍 Phase 1: Local Sandbox & Static Analysis Integration (v0.6.0) [COMPLETED]
 *Currently, agents review code statically, meaning they can easily miss runtime compilation or style errors, or suggest changes that conflict with lint rules.*
 
 #### Proposed Features
