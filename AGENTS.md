@@ -116,6 +116,7 @@ static_analysis:
   commands:
     - name: eslint
       run: npx eslint --format json -o eslint-report.json
+      outputFile: eslint-report.json
       parser: eslint-json
     - name: typescript
       run: npx tsc --noEmit

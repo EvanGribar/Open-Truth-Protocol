@@ -121,6 +121,7 @@ static_analysis:
   commands:
     - name: eslint
       run: npx eslint --format json -o eslint-report.json
+      outputFile: eslint-report.json
       parser: eslint-json
     - name: typescript
       run: npx tsc --noEmit
@@ -180,8 +181,9 @@ principal: blocking until this path uses parameterized queries.
 - `static_analysis.enabled`: whether to run local linter and compiler commands (`true` or `false`).
 - `static_analysis.commands`: list of shell commands to run, each with:
   - `name`: the name of the tool (used as the agent name for findings).
-  - `run`: the shell command to execute. Supports capturing stdout or parsing generated reports if output file flags (e.g., `-o <file>` or `--output-file <file>`) are specified.
+  - `run`: the shell command to execute.
   - `parser`: log parser to use (`eslint-json` or `regex`).
+  - `outputFile`: optional path to a generated report file. If provided, the linter report is read directly from this file. If omitted, the runner falls back to extracting the output file path from command line arguments (e.g. `-o <file>` or `--output-file <file>`) or stdout.
   - `regex`: the regular expression to parse output logs line-by-line (required when `parser` is `regex`). Must define `(?<file>...)`, `(?<line>...)`, and `(?<claim>...)` named capture groups, and optionally `(?<severity>...)`.
 
 ## Provider Configuration

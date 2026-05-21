@@ -61,10 +61,16 @@ async function parseCommandOutput(
   const findings: Finding[] = [];
   let content = stdout;
 
-  // Support output files if specified in the run command using -o or --output-file
-  const fileMatch = command.run.match(/(?:-o|--output-file)\s+(\S+)/);
-  if (fileMatch) {
-    const outputFileName = fileMatch[1];
+  // Support output files if specified in the config or fallback to command regex matching
+  let outputFileName = command.outputFile;
+  if (!outputFileName) {
+    const fileMatch = command.run.match(/(?:-o|--output-file)\s+(\S+)/);
+    if (fileMatch) {
+      outputFileName = fileMatch[1];
+    }
+  }
+
+  if (outputFileName) {
     const filePath = path.isAbsolute(outputFileName)
       ? outputFileName
       : path.join(workspaceRoot, outputFileName);

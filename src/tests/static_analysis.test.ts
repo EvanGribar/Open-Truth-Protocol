@@ -4,7 +4,7 @@ import path from "node:path";
 import os from "node:os";
 import test from "node:test";
 import { runStaticAnalysis } from "../static_analysis.js";
-import type { StaticAnalysisConfig } from "../types.js";
+import { type StaticAnalysisConfig, StaticAnalysisCommandSchema } from "../types.js";
 
 test("runStaticAnalysis returns empty array when disabled", async () => {
   const config: StaticAnalysisConfig = {
@@ -153,6 +153,79 @@ test("runStaticAnalysis parses custom regex formats correctly", async () => {
   assert.equal(findings[1]?.file, "src/auth.ts");
   assert.equal(findings[1]?.line, 42);
   assert.equal(findings[1]?.claim, "TS6133: 'secretKey' is declared but never used.");
+
+  await rm(tempDir, { recursive: true, force: true });
+});
+
+test("StaticAnalysisCommandSchema enforces regex parameter when parser is regex", () => {
+
+  // Should succeed for eslint-json without regex
+  const res1 = StaticAnalysisCommandSchema.safeParse({
+    parser: "eslint-json",
+    name: "eslint",
+    run: "eslint .",
+  });
+  assert.equal(res1.success, true);
+
+  // Should succeed for regex with regex
+  const res2 = StaticAnalysisCommandSchema.safeParse({
+    parser: "regex",
+    name: "tsc",
+    run: "tsc --noEmit",
+    regex: "(?<file>.*)",
+  });
+  assert.equal(res2.success, true);
+
+  // Should fail for regex without regex
+  const res3 = StaticAnalysisCommandSchema.safeParse({
+    parser: "regex",
+    name: "tsc",
+    run: "tsc --noEmit",
+  });
+  assert.equal(res3.success, false);
+});
+
+test("runStaticAnalysis parses ESLint JSON from output file when explicit outputFile is configured", async () => {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "swarm-test-"));
+  const reportPath = path.join(tempDir, "eslint-explicit.json");
+
+  const mockReport = [
+    {
+      filePath: path.join(tempDir, "src/explicit.ts"),
+      messages: [
+        {
+          line: 8,
+          severity: 2,
+          message: "Explicit file parsing error",
+          ruleId: "explicit-rule",
+        },
+      ],
+    },
+  ];
+
+  await writeFile(reportPath, JSON.stringify(mockReport), "utf8");
+
+  // Explicitly configure outputFile, but do not use -o flag in run script
+  const config: StaticAnalysisConfig = {
+    enabled: true,
+    commands: [
+      {
+        name: "explicit-eslint",
+        run: `node -e "console.log('done')"`,
+        parser: "eslint-json",
+        outputFile: "eslint-explicit.json",
+      },
+    ],
+  };
+
+  const findings = await runStaticAnalysis(config, tempDir);
+
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0]?.agent, "explicit-eslint");
+  assert.equal(findings[0]?.severity, "blocking");
+  assert.equal(findings[0]?.file, "src/explicit.ts");
+  assert.equal(findings[0]?.line, 8);
+  assert.equal(findings[0]?.claim, "[explicit-rule] Explicit file parsing error");
 
   await rm(tempDir, { recursive: true, force: true });
 });

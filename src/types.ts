@@ -191,12 +191,21 @@ export const ProviderConfigSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("custom"), config: CustomProviderConfigSchema }),
 ]);
 
-export const StaticAnalysisCommandSchema = z.object({
-  name: z.string().min(1),
-  run: z.string().min(1),
-  parser: z.enum(["eslint-json", "regex"]),
-  regex: z.string().min(1).optional(),
-});
+export const StaticAnalysisCommandSchema = z.discriminatedUnion("parser", [
+  z.object({
+    parser: z.literal("eslint-json"),
+    name: z.string().min(1),
+    run: z.string().min(1),
+    outputFile: z.string().min(1).optional(),
+  }),
+  z.object({
+    parser: z.literal("regex"),
+    name: z.string().min(1),
+    run: z.string().min(1),
+    regex: z.string().min(1),
+    outputFile: z.string().min(1).optional(),
+  }),
+]);
 
 export const StaticAnalysisConfigSchema = z.object({
   enabled: z.boolean().default(false),
